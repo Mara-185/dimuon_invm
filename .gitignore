@@ -129,4 +129,4 @@ dmypy.json
 .pyre/
 
 # root stuff
-.root
+*.root
