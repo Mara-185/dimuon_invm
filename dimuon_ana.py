@@ -143,17 +143,11 @@ def mumu_spectrum(infile, mu_c=None):
 
 
     if mu_c == None:
-        print("a")
         t_name = infile.replace(".root", "")
         rdf_m = ROOT.RDataFrame(t_name,infile)
         h = rdf_m.Histo1D(ROOT.RDF.TH1DModel("Dimuon mass", "Dimuon mass", 50000, 0.3, 200), "Dimuon_mass")
     else:
         h = mu_c.Histo1D(ROOT.RDF.TH1DModel("Dimuon mass", "Dimuon mass", 50000, 0.3, 200), "Dimuon_mass")
-    ###########################DESCRIVI SCELTA BINNAGGIO#############################################
-    #from eta (0.57-0.52)/(0.0000001(risoluzione?))=500.000/10(bin larghi dieci volte la risoluzione) = 50000
-    #To choose the binning in order to see the smallest resonance (eta), its
-    #its mass range has been divided by the last significant digit in mass data.
-    #Then te result has been divided by 10 (at least 10 events in the same bin)
 
 
     #Styling
@@ -183,6 +177,50 @@ def mumu_spectrum(infile, mu_c=None):
     c.SaveAs("dimuon_spectrum.pdf")
     c.SaveAs("dimuon_spectrum.png")
     logger.info("The file \"dimuon_spectrum.pdf\" has been created.")
+
+
+def mumu_spectrum_bump(infile, mu_c=None):
+    """It takes in input the root data file obtained by the function "leptons_analysis"
+    named "dilepton.root" and plot the histogram of the dimuons invariant mass."""
+
+    if mu_c == None:
+        t_name = infile.replace(".root", "")
+        rdf = ROOT.RDataFrame(t_name,infile)
+        rdf_m = rdf.Filter("Dimuon_pt>20")
+        h = rdf_m.Histo1D(ROOT.RDF.TH1DModel("Dimuon mass", "Dimuon mass", 50000, 0.3, 200), "Dimuon_mass")
+    else:
+        rdf_m = mu_c.Filter("Dimuon_pt>20")
+        h = rdf_m.Histo1D(ROOT.RDF.TH1DModel("Dimuon mass", "Dimuon mass", 50000, 0.3, 200), "Dimuon_mass")
+
+
+    #Styling
+    ROOT.gStyle.SetOptStat("e")
+    c = ROOT.TCanvas("dimuon spectrum", "#mu^{+}#mu^{-} invariant mass")
+    c.SetLogx()
+    c.SetLogy()
+    h.GetXaxis().SetTitle("m_{#mu^{+}#mu^{-}} [GeV]")
+    h.GetXaxis().SetTitleSize(0.04)
+    h.GetXaxis().CenterTitle()
+    h.GetYaxis().SetTitle("Events")
+    h.GetYaxis().SetTitleSize(0.04)
+    h.GetYaxis().CenterTitle()
+    h.Draw()
+
+    #Labels
+    label = ROOT.TLatex()
+    label.SetNDC(True)
+    label.DrawLatex(0.165, 0.720, "#eta")
+    label.DrawLatex(0.190, 0.772, "#rho,#omega")
+    label.DrawLatex(0.245, 0.775, "#phi")
+    label.DrawLatex(0.400, 0.850, "J/#psi")
+    label.DrawLatex(0.410, 0.700, "#psi'")
+    label.DrawLatex(0.485, 0.700, "Y(1, 2, 3S)")
+    label.DrawLatex(0.795, 0.680, "Z")
+    label.DrawLatex(0.7, 0.85, "p_{t}> 20 GeV")
+
+    c.SaveAs("dimuon_spectrum_bump.pdf")
+    c.SaveAs("dimuon_spectrum_bump.png")
+    logger.info("The file \"dimuon_spectrum_bump.pdf\" has been created.")
 
 
 if __name__ == "__main__":
@@ -238,6 +276,10 @@ if __name__ == "__main__":
     mu_cache = None
     #mu_cache = leptons_analysis(f"{args.file}")
     mumu_spectrum("dimuon.root", mu_cache)
+    mumu_spectrum_bump("dimuon.root", mu_cache)
+
+    #BUMP
+
 
     #print elapsed time
     timer.Stop()
