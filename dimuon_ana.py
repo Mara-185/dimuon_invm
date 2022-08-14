@@ -174,8 +174,10 @@ def mumu_spectrum(infile, mu_c=None):
     label.DrawLatex(0.485, 0.700, "Y(1, 2, 3S)")
     label.DrawLatex(0.795, 0.680, "Z")
 
+    os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Spectrum')))
     c.SaveAs("dimuon_spectrum.pdf")
     c.SaveAs("dimuon_spectrum.png")
+    os.chdir(os.path.dirname(os. getcwd()))
     logger.info("The file \"dimuon_spectrum.pdf\" has been created.")
 
 
@@ -218,8 +220,10 @@ def mumu_spectrum_bump(infile, mu_c=None):
     label.DrawLatex(0.795, 0.680, "Z")
     label.DrawLatex(0.7, 0.85, "p_{t}> 20 GeV")
 
+    os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Spectrum')))
     c.SaveAs("dimuon_spectrum_bump.pdf")
     c.SaveAs("dimuon_spectrum_bump.png")
+    os.chdir(os.path.dirname(os. getcwd()))
     logger.info("The file \"dimuon_spectrum_bump.pdf\" has been created.")
 
 
@@ -275,6 +279,10 @@ if __name__ == "__main__":
     #LEPTONS ANALYSIS
     mu_cache = None
     #mu_cache = leptons_analysis(f"{args.file}")
+
+    #SPECTRUM
+    os.makedirs("Spectrum", exist_ok=True)
+    logger.debug("The new directory \"Spectrum\" is created")
     mumu_spectrum("dimuon.root", mu_cache)
     mumu_spectrum_bump("dimuon.root", mu_cache)
 
