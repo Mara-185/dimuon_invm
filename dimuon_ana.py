@@ -138,7 +138,7 @@ def leptons_analysis(infile):
 
 def mumu_spectrum(infile, mu_c=None):
     """It takes in input the root data file or the data cached obtained by the
-    function "leptons_analysis" named "dilepton.root" and plot the histogram of
+    function "leptons_analysis" named "dimuon.root" and plot the histogram of
     the dimuons invariant mass."""
 
 
@@ -174,7 +174,7 @@ def mumu_spectrum(infile, mu_c=None):
     label.DrawLatex(0.485, 0.700, "Y(1, 2, 3S)")
     label.DrawLatex(0.795, 0.680, "Z")
 
-    os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Spectrum')))
+    os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Spectra')))
     c.SaveAs("dimuon_spectrum.pdf")
     c.SaveAs("dimuon_spectrum.png")
     os.chdir(os.path.dirname(os. getcwd()))
@@ -183,7 +183,8 @@ def mumu_spectrum(infile, mu_c=None):
 
 def mumu_spectrum_bump(infile, mu_c=None):
     """It takes in input the root data file obtained by the function "leptons_analysis"
-    named "dilepton.root" and plot the histogram of the dimuons invariant mass."""
+    named "dimuon.root" and plot the histogram of the dimuons invariant mass
+    with a cut for events which have pt>20 GeV."""
 
     if mu_c == None:
         t_name = infile.replace(".root", "")
@@ -220,11 +221,50 @@ def mumu_spectrum_bump(infile, mu_c=None):
     label.DrawLatex(0.795, 0.680, "Z")
     label.DrawLatex(0.7, 0.85, "p_{t}> 20 GeV")
 
-    os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Spectrum')))
+    os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Spectra')))
     c.SaveAs("dimuon_spectrum_bump.pdf")
     c.SaveAs("dimuon_spectrum_bump.png")
     os.chdir(os.path.dirname(os. getcwd()))
     logger.info("The file \"dimuon_spectrum_bump.pdf\" has been created.")
+
+
+def mumu_eta(infile, mu_c=None):
+    """It takes in input the root data file obtained by the function "leptons_analysis"
+    named "dimuon.root" and plot the histogram of the dimuons pseudorapidity."""
+
+    if mu_c == None:
+        t_name = infile.replace(".root", "")
+        rdf = ROOT.RDataFrame(t_name,infile)
+        rdf_m = rdf.Filter("Dimuon_pt>20")
+        h = rdf_m.Histo1D(ROOT.RDF.TH1DModel("Dimuon eta", "Dimuon eta", 150, -4, 4), "Dimuon_eta")
+    else:
+        rdf_m = mu_c.Filter("Dimuon_pt>20")
+        h = rdf_m.Histo1D(ROOT.RDF.TH1DModel("Dimuon eta", "Dimuon eta", 150, -4, 4), "Dimuon_eta")
+
+    #Styling
+    ROOT.gStyle.SetOptStat("e")
+    c = ROOT.TCanvas("dimuon spectrum", "#mu^{+}#mu^{-} pt")
+    c.SetGrid()
+    h.GetXaxis().SetTitle("#eta_{#mu^{+}#mu^{-}} [GeV]")
+    h.GetXaxis().SetTitleSize(0.04)
+    h.GetXaxis().CenterTitle()
+    h.GetYaxis().SetTitle("Events")
+    h.GetYaxis().SetTitleSize(0.04)
+    h.GetYaxis().SetTitleOffset(1.3)
+    h.GetYaxis().CenterTitle()
+    h.Draw()
+
+    os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Spectra')))
+    c.SaveAs("dimuon_eta.pdf")
+    c.SaveAs("dimuon_eta.png")
+    os.chdir(os.path.dirname(os. getcwd()))
+    logger.info("The file \"dimuon_eta.pdf\" has been created.")
+
+
+def write_fitresults(results, filename):
+    text = ROOT.std.ofstream(filename)
+    results.printMultiline(text, 1111, True)
+    text.close()
 
 
 if __name__ == "__main__":
@@ -281,12 +321,15 @@ if __name__ == "__main__":
     #mu_cache = leptons_analysis(f"{args.file}")
 
     #SPECTRUM
-    os.makedirs("Spectrum", exist_ok=True)
-    logger.debug("The new directory \"Spectrum\" is created")
+    os.makedirs("Spectra", exist_ok=True)
+    logger.debug("The new directory \"Spectra\" is created")
     mumu_spectrum("dimuon.root", mu_cache)
-    mumu_spectrum_bump("dimuon.root", mu_cache)
 
     #BUMP
+    mumu_spectrum_bump("dimuon.root", mu_cache)
+
+    #ETA DISTRIBUTION
+    mumu_eta("dimuon.root", mu_cache)
 
 
     #print elapsed time
