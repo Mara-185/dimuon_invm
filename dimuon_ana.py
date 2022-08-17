@@ -17,11 +17,15 @@ from pathlib import Path
       - "leptons_analysis" which selects the couple of muons and electrons which are interesting
         in order to create the dimuon mass spectrum and for further analysis;
       - "mumu_spectrum" which plot the dimuon mass spectrum.
-      - "resonance_prop" creates different plots of main characteristics of the
-        particle chosen in the spectrum;
       - "resonance_fit" solves every resonance and returns the plot with the fit
         and a txt with the fit results.
-       - [........................]
+      - "resonance_prop" creates different plots of main characteristics of the
+        particle chosen in the spectrum;
+      - [........................]
+
+    In the analysis the following version have been used:
+    - Python v3.8
+    - ROOT v6.24
 """
 
 
@@ -267,6 +271,237 @@ def write_fitresults(results, filename):
     text.close()
 
 
+def resonance_fit(infile, particle):
+    """It takes in input the root data file obtained with "mumu_analysis"
+        and a string with the name of the resonance to fit.
+        It retrieves a plot with the fit, a txt with fit results and a workspace
+        ????????????????????????????????????????????????????????"""
+
+    #An auxiliary TTree from the root data file is created.
+    f = ROOT.TFile.Open(infile)
+    tree_name = infile.replace(".root", "")
+    tree = f.Get(f"{tree_name}")
+    logger.debug("The tree is created.")
+
+    #Styling
+    ymax=0.8
+    xmax=0.4
+    name=f"#{particle}"
+    bkg = "Chebychev"                                                              #The background is characterized by Chebychev polynomials
+    sig = "gaus"
+    low_edge_pt = 10
+    upper_edge_pt = 100
+    low_edge_eta = -1.2
+    upper_edge_eta = 1.2
+    nparam = 2
+
+    error=1
+
+    #Mass limits are defined in order to make a selection on data for each particle.
+    #Also the shapes of singal and background are choosed.
+    if particle=="eta":
+        low_edge = 0.52
+        upper_edge = 0.57
+        mean = ROOT.RooRealVar("mean", "mean", 0.552, 0.53, 0.56)
+        sigma = ROOT.RooRealVar("sigma", "sigma", 0.07, 0.01, 0.1)
+        ymax=0.4
+    elif particle=="rho" or particle=="omega":
+        low_edge = 0.72
+        upper_edge = 0.84
+        mean = ROOT.RooRealVar("mean", "mean", 0.78, 0.75, 0.8)
+        sigma = ROOT.RooRealVar("sigma", "sigma", 0.01, 0.001, 0.1)
+    elif particle=="phi":
+        low_edge = 0.96
+        upper_edge = 1.07
+        mean = ROOT.RooRealVar("mean", "mean", 1.02, 0.98, 1.06)
+        sigma = ROOT.RooRealVar("sigma", "sigma", 0.004, 0.0001, 0.1)
+    elif particle=="J-psi":
+        low_edge = 2.65
+        upper_edge = 3.55
+        mean = ROOT.RooRealVar("mean", "mean", 3.10, 2.9, 3.2)
+        sigma = ROOT.RooRealVar("sigma", "sigma", 0.04, 0.0001, 1.)
+        sig = "Crystal ball"
+        nparam = 3
+        xmax=0.42
+        name="J/#psi"
+    elif particle=="psi'":
+        low_edge = 3.55
+        upper_edge = 3.85
+        mean = ROOT.RooRealVar("mean", "mean", 3.7, 3.6, 3.8)
+        sigma = ROOT.RooRealVar("sigma", "sigma", 0.04, 0.0001, 1.)
+        nparam = 3
+        xmax = 0.9
+    elif particle=="Z":
+        low_edge = 82
+        upper_edge = 98
+        mean = ROOT.RooRealVar("mean", "mean", 91, 89, 93)
+        sigma = ROOT.RooRealVar("sigma", "sigma",2, 0.01, 4 )
+        xmax=0.42
+        name=f"{particle}"
+    elif particle=="Y":
+        low_edge = 8.5
+        upper_edge = 11
+        mean1 = ROOT.RooRealVar("mean1", "mean1", 9.4, 9.2, 9.7)
+        mean2 = ROOT.RooRealVar("mean2", "mean2", 10, 9.8, 10.15)
+        mean3 = ROOT.RooRealVar("mean3", "mean3", 10.3, 10., 10.5)
+        sigma1 = ROOT.RooRealVar("sigma1", "sigma1", 0.005, 0.001, 1.)
+        sigma2 = ROOT.RooRealVar("sigma2", "sigma2", 0.005, 0.001, 1.)
+        sigma3 = ROOT.RooRealVar("sigma3", "sigma3", 0.005, 0.001, 1.)
+        sig = "3gaus"
+        nparam = 3
+        name=f"{particle}"
+    elif particle=="all":
+        for p in ["eta", "rho", "phi", "J-psi", "psi'", "Y", "Z"]:
+            resonance_fit(infile, p)
+    else:
+        print("Invalid argument!")
+        print("Possible arguments are:\"eta\", \"rho\", \"omega\", \"phi\",\
+         \"J-psi\", \"psi'\", \"Y\", \"Z\" or \"all\"")
+        inp = input("Insert the right string or leave it empty to exit the program:")
+        if inp=="":
+            sys.exit(1)
+        else:
+            print(f"The particle chosen is: \"{inp}\"")
+            resonance_fit(infile, inp)
+            error=0;
+
+    if particle!="all" and error!=0:
+        Dimuon_mass = ROOT.RooRealVar("Dimuon_mass", "Dimuon_mass", low_edge, upper_edge)
+        Dimuon_pt = ROOT.RooRealVar("Dimuon_pt", "Dimuon_pt", low_edge_pt, upper_edge_pt)
+        Dimuon_eta = ROOT.RooRealVar("Dimuon_eta", "Dimuon_eta", low_edge_eta, upper_edge_eta)
+
+
+        cut = ROOT.RooFormulaVar("cut on mass, pt, eta",\
+         f"(Dimuon_mass>{low_edge})&&(Dimuon_mass<{upper_edge})&&(Dimuon_pt>{low_edge_pt})\
+         &&(Dimuon_pt<{upper_edge_pt})&&(Dimuon_eta>{low_edge_eta})&&(Dimuon_eta<{upper_edge_eta})", \
+         ROOT.RooArgList(Dimuon_mass, Dimuon_pt, Dimuon_eta))
+        rds = ROOT.RooDataSet("rds","rds",tree,ROOT.RooArgSet(Dimuon_mass, Dimuon_pt, Dimuon_eta),cut)
+        logger.debug("The roodataset is created from the tree with cut on mass, pt, and eta.")
+        num = rds.sumEntries()
+
+
+        if sig=="gaus":
+            sigf = ROOT.RooGaussian(sig, "The resonance", Dimuon_mass, mean, sigma)
+        elif sig=="Crystal ball":
+            alpha = ROOT.RooRealVar("alpha", "alpha", 1.5, 0.5, 5)
+            n = ROOT.RooRealVar("n", "n", 5, 0., 10)
+            sigf = ROOT.RooCBShape(sig, sig, Dimuon_mass, mean, sigma, alpha, n)
+        elif sig=="3gaus":
+            sig1 = ROOT.RooGaussian(f"{sig}1", "The resonance1", Dimuon_mass, mean1, sigma1)
+            sig2 = ROOT.RooGaussian(f"{sig}2", "The resonance2", Dimuon_mass, mean2, sigma2)
+            sig3 = ROOT.RooGaussian(f"{sig}3", "The resonance3", Dimuon_mass, mean3, sigma3)
+
+        if bkg=="Chebychev":
+            a0 = ROOT.RooRealVar("a0", "a0", -0.17, -1, 1)
+            a1 = ROOT.RooRealVar("a1", "a1", 0.4, -1, 1)
+            if nparam == 2:
+                bkgf= ROOT.RooChebychev(bkg, bkg, Dimuon_mass, ROOT.RooArgList(a0, a1))
+            elif nparam == 3:
+                a2 = ROOT.RooRealVar("a2", "a2", -1, 1)
+                bkgf= ROOT.RooChebychev(bkg, bkg, Dimuon_mass, ROOT.RooArgList(a0, a1, a2))
+
+        #Extended Fit
+        nbkg = ROOT.RooRealVar("nbkg", "backgrounds events", num/2, 0, num)
+
+        if particle=="Y":
+            nsig1 = ROOT.RooRealVar("nsig1", "signal events", num/6, 0, num)
+            nsig2 = ROOT.RooRealVar("nsig2", "signal events", num/7, 0, num)
+            nsig3 = ROOT.RooRealVar("nsig3", "signal events", num/7, 0, num)
+            tot = ROOT.RooAddPdf("Model", "The total pdf", ROOT.RooArgList(sig1, sig2, sig3, bkgf),\
+                ROOT.RooArgList(nsig1, nsig2, nsig3, nbkg))
+        else:
+            nsig = ROOT.RooRealVar("nsig", "signal events", num/5, 0, num)
+            tot = ROOT.RooAddPdf("tot", "The total pdf", ROOT.RooArgList(sigf, bkgf),\
+                ROOT.RooArgList(nsig, nbkg))
+
+        opt_list = ROOT.RooLinkedList()
+        opt_list.Add(ROOT.RooFit.Extended(ROOT.kTRUE))
+        opt_list.Add(ROOT.RooFit.Save())
+        opt_list.Add(ROOT.RooFit.BatchMode(ROOT.kTRUE))
+        opt_list.Add(ROOT.RooFit.NumCPU(4))
+        #opt_list.Add(ROOT.RooFit.Timer(ROOT.kTRUE))
+        opt_list.Add(ROOT.RooFit.PrintLevel(-1))
+
+        results = tot.fitTo(rds,opt_list)
+
+        #Plot and styling
+        mframe = Dimuon_mass.frame()
+        mframe.SetTitle(f"{name} mass")
+        rds.plotOn(mframe,ROOT.RooFit.Name("Data"),ROOT.RooFit.MarkerColor(861), ROOT.RooFit.Name("Data"))
+        tot.plotOn(mframe, ROOT.RooFit.Name("Model"),ROOT.RooFit.LineColor(798))
+        tot.plotOn(mframe, ROOT.RooFit.Name(f"{bkg}"),ROOT.RooFit.Components(bkg), ROOT.RooFit.LineStyle(ROOT.kDashed),\
+            ROOT.RooFit.LineColor(ROOT.kRed))
+
+        if particle =="Y":
+            tot.plotOn(mframe, ROOT.RooFit.Name(f"{sig}1"), ROOT.RooFit.Components(f"{sig}1"), \
+             ROOT.RooFit.LineStyle(ROOT.kDashed),ROOT.RooFit.LineColor(418))
+            tot.plotOn(mframe, ROOT.RooFit.Name(f"{sig}2"), ROOT.RooFit.Components(f"{sig}2"), \
+             ROOT.RooFit.LineStyle(ROOT.kDashed),ROOT.RooFit.LineColor(418))
+            tot.plotOn(mframe, ROOT.RooFit.Name(f"{sig}3"), ROOT.RooFit.Components(f"{sig}3"), \
+             ROOT.RooFit.LineStyle(ROOT.kDashed),ROOT.RooFit.LineColor(418))
+        else:
+            tot.plotOn(mframe, ROOT.RooFit.Name(f"{sig}"), ROOT.RooFit.Components(sig), \
+             ROOT.RooFit.LineStyle(ROOT.kDashed),ROOT.RooFit.LineColor(418))
+
+        c = ROOT.TCanvas(f"{name} Resonance", f"{name} Resonance")
+        chi = mframe.chiSquare()
+
+        mframe.GetXaxis().SetTitle("m_{#mu^{+}#mu^{-}} [GeV]")
+        mframe.GetXaxis().SetTitleSize(0.045)
+        mframe.GetXaxis().CenterTitle()
+        mframe.GetYaxis().CenterTitle()
+
+        #Deaw box and Legend
+        if particle=="Y":
+            para = ROOT.RooArgSet(mean1, sigma1, mean2, sigma2, mean3, sigma3, ROOT.RooRealVar("chi", "chi",chi))
+            tot.paramOn(mframe,ROOT.RooFit.Parameters(para), ROOT.RooFit.Format("NEU",\
+                ROOT.RooFit.AutoPrecision(0)),ROOT.RooFit.Layout(0.6, 0.9, 0.9))
+            mframe.getAttText().SetTextSize(0.035)
+            #Labels
+            ROOT.gPad.SetGrid()
+            mframe.Draw()
+            label = ROOT.TLatex()
+            label.SetNDC(True)
+            label.DrawLatex(0.3, 0.8, "Y(1S)")
+            label.DrawLatex(0.5, 0.55, "Y(2S)")
+            label.DrawLatex(0.7, 0.5, "Y(3S)")
+        else:
+            para = ROOT.RooArgSet(mean, sigma, ROOT.RooRealVar("chi", "chi",chi))
+            tot.paramOn(mframe,ROOT.RooFit.Parameters(para), ROOT.RooFit.Format("NEU",\
+                ROOT.RooFit.AutoPrecision(0)), ROOT.RooFit.Layout(xmax-.3, xmax, ymax))
+            mframe.getAttText().SetTextSize(0.035)
+            ROOT.gPad.SetGrid()
+            mframe.Draw()
+
+        if particle=="Y":
+            leg = ROOT.TLegend(xmax-.3, ymax+.1, xmax-.1, ymax)
+            leg.AddEntry(f"{sig}1",f"{sig}", "l")
+        else:
+            leg = ROOT.TLegend(xmax-.3,ymax+.1,xmax-.1,ymax)
+            leg.AddEntry(f"{sig}",f"{sig}", "l")
+        leg.AddEntry(f"{bkg}",f"{bkg}", "l")
+        leg.AddEntry("Model","Total", "l")
+        leg.SetShadowColor(0)
+        leg.Draw()
+
+        #Save results in directory "Fit"
+        os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Fit')))
+        c.SaveAs(f"{particle}_fit.pdf")
+        c.SaveAs(f"{particle}_fit.png")
+        write_fitresults(results, f"res_{particle}.txt")
+
+        if particle=="Y":
+            print(f"The mass and the width of the particles {name} obtained from the fit are:\
+            \nm(Y1S) = {mean1.getValV()}; width(Y1S) = {sigma1.getValV()}\
+            \nm(Y2S) = {mean2.getValV()}; width(Y2S) = {sigma2.getValV()}\
+            \nm(Y3S) = {mean3.getValV()}; width(Y3S) = {sigma3.getValV()}\nchi2 = {chi}\n")
+        else:
+            print(f"The mass and the width of the particle {particle} obtained from the fit is:\
+            \nm = {mean.getValV()}; width = {sigma.getValV()}\nchi2 = {chi}\n")
+        os.chdir(os.path.dirname(os. getcwd()))
+        f.Close()
+
+
 if __name__ == "__main__":
 
     ROOT.gROOT.SetBatch()
@@ -299,8 +534,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description = "Processing the root file of data.")
     parser.add_argument("-f", "--file",required=True, type=str,\
         help="The path of the nanoAOD file to analyze.")
-    parser.add_argument("-c", "--cuts",required=False, type=int,\
-        help="If True the cuts on pt and eta are done, otherwise the function selects only a values' window on the mass.")
     parser.add_argument("-p", "--particle",required=False, type=str, \
         help="The name of the particle to analyze. It is necessary if you want to see resonances' fit and properties.")
     args = parser.parse_args()
@@ -323,13 +556,18 @@ if __name__ == "__main__":
     #SPECTRUM
     os.makedirs("Spectra", exist_ok=True)
     logger.debug("The new directory \"Spectra\" is created")
-    mumu_spectrum("dimuon.root", mu_cache)
+    #mumu_spectrum("dimuon.root", mu_cache)
 
     #BUMP
-    mumu_spectrum_bump("dimuon.root", mu_cache)
+    #mumu_spectrum_bump("dimuon.root", mu_cache)
 
     #ETA DISTRIBUTION
-    mumu_eta("dimuon.root", mu_cache)
+    #mumu_eta("dimuon.root", mu_cache)
+
+    #FIT
+    os.makedirs("Fit", exist_ok=True)
+    logger.debug("The new directory \"Fit\" is created")
+    resonance_fit("dimuon.root", f"{args.particle}")
 
 
     #print elapsed time
