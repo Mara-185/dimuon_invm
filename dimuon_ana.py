@@ -502,6 +502,179 @@ def resonance_fit(infile, particle):
         f.Close()
 
 
+def resonance_prop(infile,mu_c=None, particle="all"):
+    """The function creates different plots of the main properties of the particles,
+        visible as resonances in the plot of the dimuon invariant mass.
+    It takes in input:
+    - the root data file obtained by the function "leptons_analysis", which contains
+        pt, phi, eta and invariant mass of the dimuons, named "dimuon.root";
+    - a string with the name of the resonance; the default value is "all", in this
+        case plots of all resonances' properties are created.
+    """
+
+    eta_lim=3.5
+    if mu_c == None:
+        t_name = infile.replace(".root", "")
+        rdf_i = ROOT.RDataFrame(t_name,infile)
+        rdf = rdf_i.Filter("(Dimuon_pt>0)&&(Dimuon_pt<100)").Filter(f"(Dimuon_eta>-{eta_lim})&&(Dimuon_eta<{eta_lim})")
+    else:
+        rdf = mu_c.Filter("(Dimuon_pt>20)&&(Dimuon_pt<100)").Filter(f"(Dimuon_eta>-{eta_lim})&&(Dimuon_eta<{eta_lim})")
+
+    #t_name = infile.replace(".root", "")
+    #rdf_i = ROOT.RDataFrame(t_name,infile)
+    #eta_lim=3.5
+    #rdf = rdf_i.Filter("(Dimuon_pt>20)&&(Dimuon_pt<100)").Filter(f"(Dimuon_eta>-{eta_lim})&&(Dimuon_eta<{eta_lim})")
+
+    name=f"#{particle}"
+    error=1
+
+    if particle=="eta":
+        rdf_cut = rdf.Filter("(Dimuon_mass>=0.52)&&(Dimuon_mass<=0.57)", "eta cut")
+    elif particle=="rho" or particle=="omega":
+        rdf_cut = rdf.Filter("(Dimuon_mass>=0.72)&&(Dimuon_mass<=0.84)", "ro/omega cut")
+    elif particle=="phi":
+        rdf_cut = rdf.Filter("(Dimuon_mass>=0.96)&&(Dimuon_mass<=1.07)", "phi cut")
+    elif particle=="J-psi":
+        name="J/#psi"
+        rdf_cut = rdf.Filter("(Dimuon_mass>=2.65)&&(Dimuon_mass<=3.55)", "J/psi cut")
+    elif particle=="psi'":
+        rdf_cut = rdf.Filter("(Dimuon_mass>=3.55)&&(Dimuon_mass<=3.85)", "psi(2S) cut")
+    elif particle=="Y":
+        #rdf_cut = rdf.Filter("(Dimuon_mass>=8.5)&&(Dimuon_mass<=11)", "Y cut")
+        eta_lim=5
+        name=f"{particle}"
+    elif particle=="Z":
+        rdf_cut = rdf.Filter("(Dimuon_mass>=82)&&(Dimuon_mass<=98)", "Z cut")
+        eta_lim=7.5
+        name=f"{particle}"
+    elif particle=="all":
+        for p in ["eta", "rho", "phi", "J-psi", "psi'", "Y", "Z"]:
+            resonance_prop(infile,mu_c, p)
+    else:
+        print("Invalid argument!")
+        print("Possible arguments are:\"eta\", \"rho\", \"omega\", \"phi\", \"J-psi\", \"psi'\", \"Y\", \"Z\"")
+        inp = input("Insert the right string or leave it empty to exit the program:")
+        if inp=="":
+            sys.exit(1)
+        else:
+            print(f"The particle chosen is: \"{inp}\"")
+            resonance_prop(infile,mu_c, inp)
+            error=0;
+
+
+    if particle!="all" and error!=0:
+        c = ROOT.TCanvas()
+        c.UseCurrentStyle()
+        c.SetGrid()
+        ROOT.gStyle.SetOptStat("e")
+        if particle=="Y":
+            rdf_cut1 = rdf.Filter("(Dimuon_mass>=9.1)&&(Dimuon_mass<=9.75)", "Y cut1")
+            rdf_cut2 = rdf.Filter("(Dimuon_mass>=9.75)&&(Dimuon_mass<=10.2)", "Y cut")
+            rdf_cut3 = rdf.Filter("(Dimuon_mass>=10.1)&&(Dimuon_mass<=10.6)", "Y cut3")
+
+            n1 = rdf_cut1.Count().GetValue()
+            n2 = rdf_cut2.Count().GetValue()
+            n3 = rdf_cut3.Count().GetValue()
+            nbin1=math.floor(ROOT.TMath.Sqrt(n1))
+            nbin2=math.floor(ROOT.TMath.Sqrt(n2))
+            nbin3=math.floor(ROOT.TMath.Sqrt(n3))
+            # h_pt1=ROOT.TH1D(); h_pt2=ROOT.TH1D(); h_pt3=ROOT.TH1D()
+            # h_eta1=ROOT.TH1D(); h_eta2=ROOT.TH1D(); h_eta3=ROOT.TH1D()
+            # h_phi1=ROOT.TH1D(); h_phi2=ROOT.TH1D(); h_phi3=ROOT.TH1D()
+            # hpt=[h_pt1, h_pt2, h_pt3]
+            # hphi=[h_phi1, h_phi2, h_phi3]
+            # heta=[h_eta1, h_eta2, h_eta3]
+            # rdfcut=[rdf_cut1, rdf_cut2, rdf_cut3]
+            # par = ["Y(1S)","Y(2S)","Y(3S)"]
+            # Nbin=[nbin1, nbin2,nbin3]
+
+            # for h_pt, h_eta,h_phi,rdf_cut,name,nbin in zip(hpt ,heta, hphi, rdfcut,par,Nbin):
+            #     h_pt = rdf_cut.Histo1D(ROOT.RDF.TH1DModel(f"Transverse momentum {name}",\
+            #         f"Transverse momentum {name};"+"p_{t} [MeV];Events", nbin, 0, 120), "Dimuon_pt")
+            #     h_eta = rdf_cut.Histo1D(ROOT.RDF.TH1DModel(f"Pseudorapidity {name}", \
+            #         f"Pseudorapidity {name};#eta;Events", nbin, -eta_lim, eta_lim), "Dimuon_eta")
+            #     h_phi = rdf_cut.Histo1D(ROOT.RDF.TH1DModel(f"Azimuthal angle {name}", \
+            #         f"Azimuthal angle {name};#phi [rad];Events", nbin, -3.5, 3.5), "Dimuon_phi")
+
+
+            h_pt1 = rdf_cut1.Histo1D(ROOT.RDF.TH1DModel(f"Transverse momentum Y(1S)",\
+                f"Transverse momentum Y(1S);"+"p_{t} [MeV];Events", nbin1, 0, 120), "Dimuon_pt") #1000
+            h_eta1 = rdf_cut1.Histo1D(ROOT.RDF.TH1DModel(f"Pseudorapidity Y(1S)", \
+                f"Pseudorapidity Y(1S);#eta;Events", nbin1, -eta_lim, eta_lim), "Dimuon_eta") #500
+            h_phi1 = rdf_cut1.Histo1D(ROOT.RDF.TH1DModel(f"Azimuthal angle Y(1S)", \
+                f"Azimuthal angle Y(1S);#phi [rad];Events", nbin1, -3.5, 3.5), "Dimuon_phi") #500
+
+            h_pt2 = rdf_cut2.Histo1D(ROOT.RDF.TH1DModel(f"Transverse momentum Y(2S)",\
+                f"Transverse momentum Y(2S);"+"p_{t} [MeV];Events", nbin2, 0, 120), "Dimuon_pt") #1000
+            h_eta2 = rdf_cut2.Histo1D(ROOT.RDF.TH1DModel(f"Pseudorapidity Y(2S)", \
+                f"Pseudorapidity Y(2S);#eta;Events", nbin2, -eta_lim, eta_lim), "Dimuon_eta") #500
+            h_phi2 = rdf_cut2.Histo1D(ROOT.RDF.TH1DModel(f"Azimuthal angle Y(2S)", \
+                f"Azimuthal angle Y(2S);#phi [rad];Events", nbin2, -3.5, 3.5), "Dimuon_phi") #500
+
+            h_pt3 = rdf_cut3.Histo1D(ROOT.RDF.TH1DModel(f"Transverse momentum Y(3S)",\
+                f"Transverse momentum Y(3S);"+"p_{t} [MeV];Events", nbin3, 0, 120), "Dimuon_pt") #1000
+            h_eta3 = rdf_cut3.Histo1D(ROOT.RDF.TH1DModel(f"Pseudorapidity Y(3S)", \
+                f"Pseudorapidity Y(3S);#eta;Events", nbin3, -eta_lim, eta_lim), "Dimuon_eta") #500
+            h_phi3 = rdf_cut3.Histo1D(ROOT.RDF.TH1DModel(f"Azimuthal angle Y(3S)", \
+                f"Azimuthal angle Y(3S);#phi [rad];Events", nbin3, -3.5, 3.5), "Dimuon_phi") #500
+
+            for h in [h_eta1, h_pt1, h_phi1, h_eta2, h_pt2, h_phi2, h_eta3, h_pt3, h_phi3]:
+                h.GetXaxis().CenterTitle()
+                h.GetYaxis().CenterTitle()
+                h.GetXaxis().SetTitleSize(0.04)
+                h.SetFillColorAlpha(9, .8)
+
+            yeta=[h_eta1, h_eta2, h_eta3]
+            yphi=[h_phi1, h_phi2, h_phi3]
+            ypt=[h_pt1, h_pt2, h_pt3]
+            par = ["Y(1S)","Y(2S)","Y(3S)"]
+
+            for h_eta, h_phi, h_pt, particle in zip(yeta, yphi, ypt, par):
+                h_eta.Draw()
+                os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Properties')))
+                c.Print(f"{particle}_properties.pdf[", "pdf")
+                c.Print(f"{particle}_properties.pdf", f"Title:{particle} pseudorapidity")
+                c.SaveAs(f"{particle} pseudorapidity.png")
+                h_phi.Draw()
+                c.Print(f"{particle}_properties.pdf", f"Title:{particle} azimuthal angle")
+                c.SaveAs(f"{particle} azimuthal angles.png")
+                h_pt.Draw()
+                c.Print(f"{particle}_properties.pdf",f"Title:{particle} transverse momentum")
+                c.Print(f"{particle}_properties.pdf]", f"Title:{particle} transverse momentum")
+                c.SaveAs(f"{particle} transverse momentum.png")
+                os.chdir(os.path.dirname(os. getcwd()))
+
+        else:
+            n = rdf_cut.Count().GetValue()
+            nbin=math.floor(ROOT.TMath.Sqrt(n))
+            h_pt = rdf_cut.Histo1D(ROOT.RDF.TH1DModel(f"Transverse momentum {name}",\
+                f"Transverse momentum {name};"+"p_{t} [MeV];Events", nbin, 0, 120), "Dimuon_pt") #1000
+            h_eta = rdf_cut.Histo1D(ROOT.RDF.TH1DModel(f"Pseudorapidity {name}", \
+                f"Pseudorapidity {name};#eta;Events", nbin, -eta_lim, eta_lim), "Dimuon_eta") #500
+            h_phi = rdf_cut.Histo1D(ROOT.RDF.TH1DModel(f"Azimuthal angle {name}", \
+                f"Azimuthal angle {name};#phi [rad];Events", nbin, -3.5, 3.5), "Dimuon_phi") #500
+
+            for h in [h_eta, h_pt, h_phi]:
+                h.GetXaxis().CenterTitle()
+                h.GetYaxis().CenterTitle()
+                h.GetXaxis().SetTitleSize(0.04)
+                h.SetFillColorAlpha(9, .8)
+
+            h_eta.Draw()
+            os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Properties')))
+            c.Print(f"{particle}_properties.pdf[", "pdf")
+            c.Print(f"{particle}_properties.pdf", f"Title:{particle} pseudorapidity")
+            c.SaveAs(f"{particle} pseudorapidity.png")
+            h_phi.Draw()
+            c.Print(f"{particle}_properties.pdf", f"Title:{particle} azimuthal angle")
+            c.SaveAs(f"{particle} azimuthal angles.png")
+            h_pt.Draw()
+            c.Print(f"{particle}_properties.pdf",f"Title:{particle} transverse momentum")
+            c.Print(f"{particle}_properties.pdf]", f"Title:{particle} transverse momentum")
+            c.SaveAs(f"{particle} transverse momentum.png")
+            os.chdir(os.path.dirname(os. getcwd()))
+
+
 if __name__ == "__main__":
 
     ROOT.gROOT.SetBatch()
@@ -567,7 +740,12 @@ if __name__ == "__main__":
     #FIT
     os.makedirs("Fit", exist_ok=True)
     logger.debug("The new directory \"Fit\" is created")
-    resonance_fit("dimuon.root", f"{args.particle}")
+    #resonance_fit("dimuon.root", f"{args.particle}")
+
+    #PROPERTIES
+    os.makedirs("Properties", exist_ok=True)
+    logger.debug("The new directory \"Properties\" is created")
+    resonance_prop("dimuon.root",mu_cache,f"{args.particle}")
 
 
     #print elapsed time
