@@ -516,14 +516,9 @@ def resonance_prop(infile,mu_c=None, particle="all"):
     if mu_c == None:
         t_name = infile.replace(".root", "")
         rdf_i = ROOT.RDataFrame(t_name,infile)
-        rdf = rdf_i.Filter("(Dimuon_pt>0)&&(Dimuon_pt<100)").Filter(f"(Dimuon_eta>-{eta_lim})&&(Dimuon_eta<{eta_lim})")
+        rdf = rdf_i.Filter("(Dimuon_pt>0)&&(Dimuon_pt<120)").Filter(f"(Dimuon_eta>-{eta_lim})&&(Dimuon_eta<{eta_lim})")
     else:
-        rdf = mu_c.Filter("(Dimuon_pt>20)&&(Dimuon_pt<100)").Filter(f"(Dimuon_eta>-{eta_lim})&&(Dimuon_eta<{eta_lim})")
-
-    #t_name = infile.replace(".root", "")
-    #rdf_i = ROOT.RDataFrame(t_name,infile)
-    #eta_lim=3.5
-    #rdf = rdf_i.Filter("(Dimuon_pt>20)&&(Dimuon_pt<100)").Filter(f"(Dimuon_eta>-{eta_lim})&&(Dimuon_eta<{eta_lim})")
+        rdf = mu_c.Filter("(Dimuon_pt>0)&&(Dimuon_pt<120)").Filter(f"(Dimuon_eta>-{eta_lim})&&(Dimuon_eta<{eta_lim})")
 
     name=f"#{particle}"
     error=1
@@ -567,6 +562,7 @@ def resonance_prop(infile,mu_c=None, particle="all"):
         c.UseCurrentStyle()
         c.SetGrid()
         ROOT.gStyle.SetOptStat("e")
+
         if particle=="Y":
             rdf_cut1 = rdf.Filter("(Dimuon_mass>=9.1)&&(Dimuon_mass<=9.75)", "Y cut1")
             rdf_cut2 = rdf.Filter("(Dimuon_mass>=9.75)&&(Dimuon_mass<=10.2)", "Y cut")
@@ -578,15 +574,6 @@ def resonance_prop(infile,mu_c=None, particle="all"):
             nbin1=math.floor(ROOT.TMath.Sqrt(n1))
             nbin2=math.floor(ROOT.TMath.Sqrt(n2))
             nbin3=math.floor(ROOT.TMath.Sqrt(n3))
-            # h_pt1=ROOT.TH1D(); h_pt2=ROOT.TH1D(); h_pt3=ROOT.TH1D()
-            # h_eta1=ROOT.TH1D(); h_eta2=ROOT.TH1D(); h_eta3=ROOT.TH1D()
-            # h_phi1=ROOT.TH1D(); h_phi2=ROOT.TH1D(); h_phi3=ROOT.TH1D()
-            # hpt=[h_pt1, h_pt2, h_pt3]
-            # hphi=[h_phi1, h_phi2, h_phi3]
-            # heta=[h_eta1, h_eta2, h_eta3]
-            # rdfcut=[rdf_cut1, rdf_cut2, rdf_cut3]
-            # par = ["Y(1S)","Y(2S)","Y(3S)"]
-            # Nbin=[nbin1, nbin2,nbin3]
 
             # for h_pt, h_eta,h_phi,rdf_cut,name,nbin in zip(hpt ,heta, hphi, rdfcut,par,Nbin):
             #     h_pt = rdf_cut.Histo1D(ROOT.RDF.TH1DModel(f"Transverse momentum {name}",\
@@ -618,16 +605,17 @@ def resonance_prop(infile,mu_c=None, particle="all"):
             h_phi3 = rdf_cut3.Histo1D(ROOT.RDF.TH1DModel(f"Azimuthal angle Y(3S)", \
                 f"Azimuthal angle Y(3S);#phi [rad];Events", nbin3, -3.5, 3.5), "Dimuon_phi") #500
 
-            for h in [h_eta1, h_pt1, h_phi1, h_eta2, h_pt2, h_phi2, h_eta3, h_pt3, h_phi3]:
+            yeta=[h_eta1, h_eta2, h_eta3]
+            yphi=[h_phi1, h_phi2, h_phi3]
+            ypt=[h_pt1, h_pt2, h_pt3]
+            total = yeta+yphi+ypt
+            par = ["Y(1S)","Y(2S)","Y(3S)"]
+
+            for h in total:
                 h.GetXaxis().CenterTitle()
                 h.GetYaxis().CenterTitle()
                 h.GetXaxis().SetTitleSize(0.04)
                 h.SetFillColorAlpha(9, .8)
-
-            yeta=[h_eta1, h_eta2, h_eta3]
-            yphi=[h_phi1, h_phi2, h_phi3]
-            ypt=[h_pt1, h_pt2, h_pt3]
-            par = ["Y(1S)","Y(2S)","Y(3S)"]
 
             for h_eta, h_phi, h_pt, particle in zip(yeta, yphi, ypt, par):
                 h_eta.Draw()
@@ -746,6 +734,10 @@ if __name__ == "__main__":
     os.makedirs("Properties", exist_ok=True)
     logger.debug("The new directory \"Properties\" is created")
     resonance_prop("dimuon.root",mu_cache,f"{args.particle}")
+
+    #Z ANALYSIS
+    os.makedirs("Z analysis", exist_ok=True)
+    logger.debug("The new directory \"Z analysis\" is created")
 
 
     #print elapsed time
