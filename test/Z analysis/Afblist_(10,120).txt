@@ -1,0 +1,6 @@
+Afb[y(0.0,0.4)]_(10,120)dimuon_w.txt
+Afb[y(0.4,0.8)]_(10,120)dimuon_w.txt
+Afb[y(0.8,1.2)]_(10,120)dimuon_w.txt
+Afb[y(1.2,1.6)]_(10,120)dimuon_w.txt
+Afb[y(1.6,2.0)]_(10,120)dimuon_w.txt
+Afb[y(2.0,2.4)]_(10,120)dimuon_w.txt
