@@ -1,4 +1,2 @@
-argparse
-numpy
-utils
-pathlib
+numpy==1.17.4
+ROOT==0.0.1
