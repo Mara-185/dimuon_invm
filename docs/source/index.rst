@@ -3,6 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+Dimuon invariant mass has its documentation hosted on Read the Docs.
+
 Welcome to Dimuon invariant mass's documentation!
 =================================================
 
