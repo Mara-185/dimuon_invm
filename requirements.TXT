@@ -1,5 +1,4 @@
 argparse
-os
 math
 sys
 glob
