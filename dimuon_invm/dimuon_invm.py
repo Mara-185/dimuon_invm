@@ -11,6 +11,7 @@ from pathlib import Path
 
 
 """The script takes as argument:
+
     - the data file (URL) of dileptons (-f), for example: "root:
      //eospublic.cern.ch//eos/root-eos/cms_opendata_2012_nanoaod/Run2012B_DoubleMuParked.root";
     - the string of the particle's name (-p) to analyze and fit, among those in
@@ -20,6 +21,7 @@ from pathlib import Path
       " ' " character gives some troubles.
 
       There are different functions for the main analysis, among which:
+
       - "leptons_analysis" which selects the couple of muons and electrons which
         are interesting in order to create the dimuon mass spectrum and for
         further analysis;
@@ -31,6 +33,7 @@ from pathlib import Path
 
       For the extimation of the weak mixing angle studying the angular properties
       of the Z boson:
+
       - "weight" which calculates other useful variables for the analysis;
       - "afb" which estimate, from the varibles obtained by the previous function,
         the mean values of Afb (forward-backward asymmetry) in different bins
@@ -38,6 +41,7 @@ from pathlib import Path
         of mass).
 
     In the analysis the following version have been used:
+    
     - Python v3.8
     - ROOT v6.24 ("source ~/root/bin/thisroot.sh" command needed before starting
         the analysis to set the environment of ROOT)
