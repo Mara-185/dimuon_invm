@@ -1,7 +1,7 @@
 API documentation
 =================
 
-pdf
+dimuon_invm
 ----
-.. automodule:: pdf
+.. automodule:: dimuon_invm
    :members:
