@@ -12,7 +12,7 @@
 import os
 import sys
 package_name = 'dimuon_invm'
-package_root = os.path.abspath('../../dimuon_invm')
+package_root = os.path.abspath('../..')
 sys.path.insert(0, package_root)
 sys.path.insert(0, os.path.join(package_root, package_name))
 
@@ -27,10 +27,15 @@ release = '0.0.0'
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = ['sphinx.ext.autodoc']
+extensions = [
+    'sphinx.ext.autodoc',]
 
 templates_path = ['_templates']
 exclude_patterns = []
+
+source_suffix = '.rst'
+master_doc = 'index'
+pygments_style = 'sphinx'
 
 
 
