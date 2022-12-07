@@ -1,3 +1,4 @@
 numpy==1.17.4
 argparse
-logging==3.1
+pathlib
+utils
