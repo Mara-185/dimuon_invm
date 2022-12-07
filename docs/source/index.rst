@@ -10,6 +10,7 @@ Welcome to Dimuon invariant mass's documentation!
 
 .. toctree::
    :maxdepth: 2
+      api.rst
    :caption: Contents:
 
 
