@@ -12,6 +12,7 @@ Welcome to Dimuon invariant mass's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   api
 
 Indices and tables
 ==================
