@@ -9,7 +9,7 @@ Welcome to Dimuon invariant mass's documentation!
 =================================================
 
 .. toctree::
-   :maxdepth: 
+   :maxdepth: 2
    :caption: Contents:
 
 
