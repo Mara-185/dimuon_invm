@@ -2,4 +2,3 @@ numpy==1.17.4
 argparse
 pathlib
 utils
-ROOT==6.24.06
