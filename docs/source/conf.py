@@ -44,4 +44,4 @@ autodoc_mock_imports = ['ROOT']
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = 'alabaster'
-html_static_path = ['docs/source/_static']
+html_static_path = ['source\_static']
