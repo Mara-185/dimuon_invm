@@ -33,10 +33,11 @@ extensions = [
 templates_path = ['_templates']
 exclude_patterns = []
 
-source_suffix = '.rst'
+source_suffix = ['.rst']
 master_doc = 'index'
 pygments_style = 'sphinx'
 
+autodoc_mock_imports = ['numpy', 'ROOT']
 
 
 # -- Options for HTML output -------------------------------------------------
