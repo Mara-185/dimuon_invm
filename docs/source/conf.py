@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.join(package_root, package_name))
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'Dimuon invariant mass'
+project = 'dimuon_invm'
 copyright = "2022, Mara Stefania Calo'"
 author = "Mara Stefania Calo'"
 release = '0.0.0'
