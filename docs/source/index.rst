@@ -13,6 +13,7 @@ Welcome to Dimuon invariant mass's documentation!
    :caption: Contents:
 
    api
+   dimuon_invm
 
 Indices and tables
 ==================
