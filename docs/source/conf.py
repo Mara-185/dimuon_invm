@@ -40,7 +40,7 @@ extensions = [
     'sphinx.ext.napoleon',]
 
 templates_path = ['_templates']
-exclude_patterns = []
+exclude_patterns = [u'_build', 'Thumbs.db', '.DS_Store']
 
 source_suffix = '.rst'
 master_doc = 'index'
