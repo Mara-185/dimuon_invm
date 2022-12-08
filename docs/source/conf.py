@@ -28,12 +28,21 @@ release = '0.0.0'
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    'sphinx.ext.autodoc',]
+     'sphinx.ext.autodoc',
+    'sphinx.ext.doctest',
+    'sphinx.ext.todo',
+    'sphinx.ext.coverage',
+    'sphinx.ext.mathjax',
+    'sphinx.ext.ifconfig',
+    'sphinx.ext.viewcode',
+    'sphinx.ext.githubpages',
+    'sphinx.ext.autosummary',
+    'sphinx.ext.napoleon',]
 
 templates_path = ['_templates']
 exclude_patterns = []
 
-source_suffix = ['.rst']
+source_suffix = '.rst'
 master_doc = 'index'
 pygments_style = 'sphinx'
 
@@ -44,4 +53,4 @@ autodoc_mock_imports = ['ROOT']
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = 'alabaster'
-html_static_path = ['docs/build/html/_static']
+html_static_path = ['_static']
