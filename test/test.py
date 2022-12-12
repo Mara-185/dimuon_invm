@@ -1,12 +1,22 @@
 # TEST
 import ROOT
 import unittest
+import os
+import sys
 import math
 import numpy as np
+
+# Add my modules to the path
+modules = ["dimuon_invm", "utils", "Z_asymmetry"]
+package_root = os.path.abspath('../dimuon_invm')
+sys.path.insert(0, package_root)
+
+for module in modules:
+    sys.path.insert(0, os.path.join(package_root, module))
+
 import utils
-import dimuon_ana
-#from utils import *
-#from dimuon_ana import *
+import dimuon_invm
+import Z_asymmetry
 
 """This script generate some events of mumu in Z in order to test the behaviour
     of the main functions defined in \"dimuon_ana.py\".
@@ -14,11 +24,6 @@ import dimuon_ana
     mixing angle from its angular properties. """
 
 # Generate a root file for the testing
-
-#############################
-# TEST CONSIDERANDO UNA CLASSE PARTICLE DA CUI EREDITANO ALTRI ESEMPI
-# POI RDATAFRAME ...COME?
-# POI LEPTONS ANALISYS E BLA BLA????
 
 def create_dataset(N):
 
@@ -323,32 +328,37 @@ def create_dataset2(N):
 # 4. Z analysis
 
 # class TestDimuon(unittest.TestCase):
+#     """Class Test"""
 #
-#     def test_fit(data):
-#         resonance_fit(data, "Z")
+#     N = 100000
+#     outfile = "data.root"
+#     data = create_dataset(N)
 #
-#     def test_prop(data, cached):
-#         resonance_prop(data, cached , "Z")
+#     def test_fit(outfile, data):
+#         dimuon_invm.resonance_fit(outfile,"Z", data)
 #
-#     def test_leptons(data):
-#         leptons_analysis(data)
+#     def test_prop(outfile, data):
+#         dimuon_invm.resonance_prop(outfile, data, "Z")
+
+    #def test_leptons(data):
+    #    dimuon_invm.leptons_analysis(data)
 
 
 def test_fit(data):
-    resonance_fit(data, "Z")
+    dimuon_invm.resonance_fit(data, "Z")
 
 def test_prop(data, cached):
-    resonance_prop(data, cached , "Z")
+    dimuon_invm.resonance_prop(data, cached , "Z")
 
 def test_leptons(data):
-    leptons_analysis(data)
+    dimuon_invm.leptons_analysis(data)
 
 
 def test_weight(data):
-    weight(data)
+    Z_asymmetry.weight(data)
 
 def test_afb(infile):
-    afb(infile)
+    Z_asymmetry.afb(infile)
 
 
 if __name__=="__main__":
@@ -377,7 +387,7 @@ if __name__=="__main__":
     myStyle.cd()
 
     # Creating the logger and setting its level
-    utils.set_logger("Dimuon_invm_tests")
+    logger = utils.set_logger("Dimuon_invm_tests")
 
     # Enable parallel analysis
     nthreads = 4
@@ -388,7 +398,7 @@ if __name__=="__main__":
     # Define number of events to generate
     N = 100000
     outfile = "data.root"
-    #data = create_dataset(N)
+    data = create_dataset(N)
     logger.info("The dataset is created.")
 
     # Begin the tests
@@ -397,12 +407,12 @@ if __name__=="__main__":
     # Fit
     os.makedirs("Fit", exist_ok=True)
     logger.debug("The new directory \"Fit\" is created")
-    #test_fit(outfile)
+    test_fit(outfile)
 
     # Properties
     os.makedirs("Properties", exist_ok=True)
     logger.debug("The new directory \"Properties\" is created")
-    #test_prop(outfile, data)
+    test_prop(outfile, data)
 
 ##############################################
     #unittest.main()
@@ -438,4 +448,4 @@ if __name__=="__main__":
 
 
     timer.Stop()
-    logger.info(f"Elapsed time from the beginning is: {N} -> {timer.RealTime()}(real time) seconds")
+    logger.info(f"Elapsed time from the beginning is: {N} -> {timer.RealTime()}(real time) seconds, {timer.CpuTime()}(cpu time) seconds ")

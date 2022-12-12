@@ -1,11 +1,11 @@
-import ROOT
 import argparse
 import logging
 import os
 import math
 import sys
 import glob
-import numpy as np
+import ROOT
+#import numpy as np
 import utils
 import Z_asymmetry
 from pathlib import Path
