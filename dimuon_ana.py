@@ -9,8 +9,6 @@ import numpy as np
 import utils
 from pathlib import Path
 
-#from utils import *
-
 """The script takes as argument:
     - the data file (URL) of dileptons (-f), for example: "root:
      //eospublic.cern.ch//eos/root-eos/cms_opendata_2012_nanoaod/Run2012B_DoubleMuParked.root";
@@ -828,6 +826,7 @@ def cos_vs_eta(infile, rap_inf, rap_sup, bin, data_cached):
     os.chdir(os.path.dirname(os. getcwd()))
 
 
+#no
 def cos_vs_pt(infile, eta_inf, eta_sup, bin):
 
     t_name = infile.replace(".root", "")
@@ -843,8 +842,6 @@ def cos_vs_pt(infile, eta_inf, eta_sup, bin):
     c.SetGrid()
     h.Draw("AP")
     c.SaveAs(f"{branch}_cos_pt({eta_inf},{eta_sup}).png")
-
-
 
 
 def weight(infile, data_cached=None):
@@ -1180,7 +1177,7 @@ if __name__ == "__main__":
 
     ########################################################################
     #test_begin(f"{args.file}", "Muon_pt")
-    test_begin(f"{args.file}", "Muon_eta")
+    #test_begin(f"{args.file}", "Muon_eta")
     #test_begin(f"{args.file}", "Muon_phi")
     #test_begin(f"{args.file}", "Muon_mass")
 
@@ -1217,7 +1214,6 @@ if __name__ == "__main__":
     os.makedirs("Properties", exist_ok=True)
     logger.debug("The new directory \"Properties\" is created")
     # resonance_prop(outfile_m, dimu_cached, f"{args.particle}")
-
 
     # Z ANALYSIS
     os.makedirs("Z analysis", exist_ok=True)

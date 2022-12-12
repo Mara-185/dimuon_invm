@@ -117,6 +117,7 @@ def leptons_analysis(infile):
     	return P;
     }
 
+
     ROOT::VecOps::RVec<float> cos_rapidity(float pt0, float eta0, float phi0,
             float mass0, float pt1, float eta1, float phi1, float mass1)
     {
@@ -829,47 +830,6 @@ if __name__ == "__main__":
     # Z ANALYSIS
     os.makedirs("Z analysis", exist_ok=True)
     logger.debug("The new directory \"Z analysis\" is created")
-
-    # Plot Z resonance and cos(theta*)in different rapidity ranges for both
-    # dimuons and dielectrons data
-    data = ["dimuon", "dielectron"]
-    cached = [dimu_cached, diel_cached]
-    for i in range(0, len(utils.RAPIDITY_BIN), 1):
-
-        # Retrieve the values of eta range bins (y_inf, y_sup)
-        y_lim = utils.RAPIDITY_BIN[f"{i}"]
-
-        # Cut on pt to reduce background (pt_inf, pt_sup)
-        pt_lim = (10,100)
-        pt_lim2 = (80,100)
-
-        bin = 40 #binning
-        for dilepton, cache in zip(data, cached):
-            #Z_asymmetry.mass_vs_eta(f"{dilepton}.root",y_lim,pt_lim,bin,cache)
-            #Z_asymmetry.cos_vs_eta(f"{dilepton}.root",y_lim,pt_lim,bin,cache)
-            pass
-
-    # AFB (Forward_Backward Asymmetry)
-    #Z_asymmetry.weight("dimuon.root", dimu_cached)
-    Z_asymmetry.afb("dimuon_w.root", pt_lim)
-
-    # Plot AFB for different cut in pt
-
-    os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Z analysis')))
-
-    # Create a txt with a list of the files from which takes values.
-    pt_plot = [f"{pt_lim}", f"{pt_lim2}"]
-    print(pt_plot[0])
-    for p in pt_plot:
-        pathlist = Path("").glob(f"*_{p}dimuon_w.txt")
-        with open(f"Afblist_{p}.txt", "w+") as outf:
-            for path in pathlist:
-                print(path, file=outf)
-
-    # Dimuon Afb plots
-    for p in pt_plot:
-        Z_asymmetry.afb_plot(f"Afblist_{p}.txt")
-    os.chdir(os.path.dirname(os. getcwd()))
 
 
     # Elapsed time
