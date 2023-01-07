@@ -12,6 +12,7 @@ import ROOT
 import logging
 import os
 import utils
+import argparse
 
 # Z Analysis
 
@@ -21,6 +22,24 @@ import utils
     # 0, 0.4, 0.8, 1.2, 1.6, 2.0, 2.4
 
 logger = logging.getLogger(__name__)
+
+def z_analysis(infile):
+    # Enable parallel analysis
+    nthreads = 4
+    ROOT.ROOT.EnableImplicitMT(nthreads)
+
+    logging.info("Start the analysis...")
+
+    # Create an RDataFrame of useful data from the root file.
+    root_file = ROOT.TFile.Open(infile, "READ")
+    tree_name = root_file.GetListOfKeys().At(0).GetName()
+    rdf = ROOT.RDataFrame(tree_name, root_file)
+    logger.debug("The RDataFrame have been created.")
+
+    rdf2 = rdf.Define("mask", "nMuon>1").\
+                Define("CutMuonPt", "Muon_pt[mask]")
+
+    return rdf2
 
 def mass_vs_eta(infile, rap_lim, pt_lim, bin, data_cached):
     """
@@ -231,3 +250,28 @@ def afb_plot(infile):
         name = inf.replace("txt", "")
         c.Print(f"{file_name}", f"Title:{name}")
     c.Print(f"{file_name}]", f"Title:{name}")
+
+
+
+if __name__ == "__main__":
+
+    # Enable the multi-threading analysis
+    nthreads = 4
+    ROOT.ROOT.EnableImplicitMT(nthreads)
+
+
+    # Creating the parser
+    parser = argparse.ArgumentParser(description =
+        "Processing the root file of data.")
+    parser.add_argument("-f", "--file",required=True, type=str,
+        help="The path of the nanoAOD file to analyze.")
+    args = parser.parse_args()
+
+
+    logger = utils.set_logger("Z analysis")
+
+    logger.info("Starting the analysis of the root file nanoAOD...")
+
+    rdata=z_analysis(f"{args.file}")
+
+    rdata.Display(["Muon_pt", "CutMuonPt"])

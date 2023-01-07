@@ -75,13 +75,13 @@ def leptons_analysis(infile):
 
     # Filter on two muons and two electrons with opposite charge
     rdf_mu = rdf.Filter("nMuon==2","Selection of two muons").\
-     Filter("Muon_charge[0]!=Muon_charge[1]",\
-                "Selection of muons with opposite charge")
+                 Filter("Muon_charge[0]!=Muon_charge[1]",\
+                        "Selection of muons with opposite charge")
     logger.info("The cut on two muons with opposite charge is done.")
 
     rdf_e = rdf.Filter("nElectron==2","Selection of two electrons").\
-     Filter("Electron_charge[0]!=Electron_charge[1]",\
-                "Selection of electrons with opposite charge")
+                Filter("Electron_charge[0]!=Electron_charge[1]",\
+                       "Selection of electrons with opposite charge")
     logger.info("The cut on two electrons with opposite charge is done.")
 
     # Print cutflows
