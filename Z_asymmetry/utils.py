@@ -7,6 +7,7 @@ import ast
 logger = logging.getLogger(__name__)
 
 def set_logger(name):
+    """Create a new logger."""
 
     # Create logger and set its level
     logger = logging.getLogger(f"{name}")
@@ -20,7 +21,7 @@ def set_logger(name):
     return logger
 
 def write_fitresults(results, filename):
-    """Function used to save results from RooFit fit in a txt file"""
+    """Function used to save results from RooFit fit in a txt file."""
 
     text = ROOT.std.ofstream(filename)
     results.printMultiline(text, 1111, True)
@@ -48,6 +49,7 @@ PARTICLES_MASS_RANGE = {
 # "particle" :
 # (mean0,sigma0,signal,n° parameters for background,xmax(box),ymax(box),name,
 #   n° total parameters )
+
 FIT_INIT_PARAM = {
     "eta" : (ROOT.RooRealVar("mean", "mean", 0.552, 0.53, 0.56),
         ROOT.RooRealVar("sigma", "sigma", 0.07, 0.01, 0.1),

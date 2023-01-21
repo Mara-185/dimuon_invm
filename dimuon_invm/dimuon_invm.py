@@ -611,7 +611,7 @@ def resonance_prop(infile, mu_cached=None, particle="all"):
         the invariant mass of the dimuons;
     - a string with the name of the resonance; the default value is "all", in
         this case plots of all resonances' properties are created.
-        
+
     """
 
     # Cuts on pt
