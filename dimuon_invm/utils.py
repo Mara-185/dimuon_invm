@@ -1,7 +1,7 @@
 """Utilities for plotting scripts."""
 
-import logging
 import ROOT
+import logging
 
 def set_logger(name):
 

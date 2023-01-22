@@ -1,13 +1,12 @@
+import ROOT
 import argparse
 import logging
 import os
 import math
 import sys
 import glob
-import ROOT
-#import numpy as np
+import numpy as np
 import utils
-import Z_asymmetry
 from pathlib import Path
 
 
@@ -46,6 +45,7 @@ from pathlib import Path
     - Python v3.8
     - ROOT v6.24 ("source ~/root/bin/thisroot.sh" command needed before starting
         the analysis to set the environment of ROOT)
+
 """
 
 # def main(infile, particle="all"):
@@ -59,6 +59,7 @@ def leptons_analysis(infile):
     to different quantity, for example:
     ["Dimuon_mass", "Dimuon_pt", "Dimuon_eta", "Dimuon_phi"].
     It returns the data cached in memory, in order to speed up further analysis.
+
     """
 
     # Enable parallel analysis
@@ -116,6 +117,7 @@ def leptons_analysis(infile):
                 (p1+p0).M()};
     	return P;
     }
+
 
     ROOT::VecOps::RVec<float> cos_rapidity(float pt0, float eta0, float phi0,
             float mass0, float pt1, float eta1, float phi1, float mass1)
@@ -226,7 +228,8 @@ def leptons_analysis(infile):
 def mumu_spectrum(infile, mu_cached=None):
     """It takes in input the root data file or the data cached obtained by the
     function "leptons_analysis" named "dimuon.root" and plot the histogram of
-    the dimuons invariant mass."""
+    the dimuons invariant mass.
+    """
 
     #Histogram of dimuon mass
     if mu_cached == None:
@@ -273,7 +276,8 @@ def mumu_spectrum(infile, mu_cached=None):
 def mumu_spectrum_bump(infile, mu_cached=None):
     """It takes in input the root data file or the data cached obtained by the
     function "leptons_analysis" named "dimuon.root" and plot the histogram of
-    the dimuons invariant mass with a cut for events which have pt>20 GeV."""
+    the dimuons invariant mass with a cut for events which have pt>20 GeV.
+    """
 
     if mu_cached == None:
         t_name = infile.replace(".root", "")
@@ -324,7 +328,8 @@ def mumu_spectrum_bump(infile, mu_cached=None):
 def mumu_eta(infile, mu_cached=None):
     """It takes in input the root data file or the data cached obtained by the
     function "leptons_analysis" named "dimuon.root" and plot the histogram of
-    the dimuons pseudorapidity."""
+    the dimuons pseudorapidity.
+    """
 
     if mu_cached == None:
         t_name = infile.replace(".root", "")
@@ -600,11 +605,13 @@ def resonance_prop(infile, mu_cached=None, particle="all"):
     """The function creates different plots of the main properties of the
     resonances such as transverse momentum, pseudorapidity and azimuthal angle.
     It takes in input :
+
     - the root data file or the data cached obtained by the function "
         leptons_analysis" named "dimuon.root" which contains pt, phi, eta and
         the invariant mass of the dimuons;
     - a string with the name of the resonance; the default value is "all", in
         this case plots of all resonances' properties are created.
+
     """
 
     # Cuts on pt
@@ -743,6 +750,7 @@ def resonance_prop(infile, mu_cached=None, particle="all"):
 
             # Return in main directory
             os.chdir(os.path.dirname(os. getcwd()))
+
 
 
 
