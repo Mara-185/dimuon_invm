@@ -1,0 +1,3 @@
+digraph {
+	0 [label="LazyDS", style="filled", fillcolor="#e8f8fc", shape="oval"];
+}
