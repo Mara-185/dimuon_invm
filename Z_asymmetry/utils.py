@@ -1,4 +1,4 @@
-"""Utilities for plotting scripts."""
+"""Utilities for "dimuon_invm.py" and "Z_asymmetry.py" scripts."""
 
 import logging
 import ROOT
@@ -6,12 +6,12 @@ import ast
 
 logger = logging.getLogger(__name__)
 
-def set_logger(name):
+def set_logger(name, log_level):
     """Create a new logger."""
 
     # Create logger and set its level
     logger = logging.getLogger(f"{name}")
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=log_level)
     handler = logging.FileHandler(f"{name}.log", "w+")
     formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - "
      "%(message)s")
@@ -82,8 +82,8 @@ FIT_INIT_PARAM = {
 }
 
 
-# Z analysis
-# Dictionaries with mass bin values and eta bin values
+# Z_asymmetry:
+# Dictionaries with mass bin values and eta bin values.
 
 # Mass range from article : 60 < M < 120:
     # 60, 70, 78, 84, 87, 89, 91, 93, 95, 98, 104, 112, 120;

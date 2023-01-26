@@ -1,6 +1,6 @@
-"""In this module a few functions are implemented, in order to study the
+"""In this module a few functions are implemented in order to study the
     \"Forward-Backward asymmetry" for the Z boson decay.
-    The analysis is done on six different rapidity ranges of equal size and
+    The analysis is done in six different rapidity ranges of equal size and
     twelve mass bins:
     - Mass bins from article : 60 < M < 120:
         [60, 70, 78, 84, 87, 89, 91, 93, 95, 98, 104, 112, 120];
@@ -22,59 +22,76 @@ from pathlib import Path
 def retrieve_dataset(findex, start, stop):
     """
     The function takes as argument the file index with all name of root files
-    of the chosen dataset and the two extremities of the file's range to analyze.
-    The file index of the chosen dataset has to be downloaded.
+    of the chosen dataset and the two extremities of the files' range to analyze.
+    (The file index of the chosen dataset has to be downloaded)
+    Two lists and a standard vector are returned in order to save the time
+    needed to analyze each file, its number of events and the name of the
+    snapshot created in the "z_main" fucntion.
 
     :param findex : index of root files which make up the entire dataset
-    :type findex: txt file, required.
+    :type findex: string of txt file, required.
     :param start: first index of the range of files to analyze
     :type start: int, required
     :param stop: second index of the range of files to analyze
     :type stop: int, required
+
     """
 
     with open(findex) as inf:
-        all_data = [_.rstrip('\n') for _ in inf]
+        # Strings of all files in the dataset are loaded.
+        all_dataf = [_.rstrip('\n') for _ in inf]
         run = findex.replace("_index.txt", "")
-        logger.info(f"Total number of data files in run {run}: {len(all_data)}\n")
-        data = all_data[start:stop]
+        logger.info(f" Total number of data files in {run}: {len(all_dataf)}\n")
+
+        # Only the chosen range of files are selected.
+        data = all_dataf[start:stop]
         times = []
+        N = []
+        files = ROOT.std.vector("string")()
 
-        root_files = ROOT.std.vector("string")()
         for i,d in enumerate(data):
-            logger.info(f"Analyzing file number {i+1} :\n{d}")
-            start1 = time.time()
-            root_files.push_back(z_main(d, i))
-            stop1 = time.time()
-            times.append(stop1-start1)
-            logger.info(f"Time : {stop1-start1}")
+            logger.info(f" Analyzing file number {i+1} :\n{d}")
 
-    return root_files, times
+            start_analysis = time.time()
+            #string_file, N_events = z_main(d, i, run)
+            string_file, N_events = main2(d, i, run)
+            stop_analysis = time.time() - start_analysis
+            logger.info(f" Elapsed time : {stop_analysis}")
+
+            files.push_back(string_file)
+            N.append(N_events)
+            times.append(stop_analysis)
+
+    return files, times, N
 
 
-def z_analysis(infile, iteration=0):
+def z_analysis(infile): #, iteration):
     """
-    The function create an RDataFrame to do the right cuts on data and it creates
-    a snapshot of the events that passed the cuts.
-    ????????????????????????????????????????????????????????
+    The function create an RDataFrame to make the selection on data and it
+    returns a new dataframe with the selected data and the total number of
+    events analyzed.
 
         - infile: a vector of strings which contains the files' names to analyze.
             This is the output of the function \"retrieve_dataset\".
-        - iteration: the index of the file which is been analyzing ???
+        - iteration: the index of the file which is been analyzing.
 
     :param infile: vector of strings with the name of root files
-    :type infile: vector, required
+    :type infile: standard vector, required
     :param iteration: number of file analyzed
     :type iteration: int, required
+
     """
 
-    logging.info("Start the analysis...")
+    logger.info("Start the analysis...")
 
-    # Create an RDataFrame of useful data from the root file.
+    # Create an RDataFrame to make selection on data from the root file.
     root_file = ROOT.TFile.Open(infile, "READ")
     tree_name = root_file.GetListOfKeys().At(0).GetName()
     rdf = ROOT.RDataFrame(tree_name, root_file)
-    logger.debug("The RDataFrame have been created.")
+    logger.debug(" The RDataFrame have been created.")
+
+    # Count of all data in the file.
+    N_ev = rdf.Count().GetValue()
 
     rdf_cut=rdf.Filter("nMuon>1","Selection on events with at least two muons").\
         Define("mask", "Muon_isTracker==1 && Muon_isGlobal==1 && "
@@ -92,22 +109,8 @@ def z_analysis(infile, iteration=0):
         Filter("Mu_charge[0]!=Mu_charge[1]",
                "Selection on muons with opposite charge")
 
-######################CHECK ON MU.PT SIZE and PTERR #####################
-
-    ###########################################################################
-    ####################    SHARED LIBRARY  ###################################
-    # Devo per forza fare il load altrimenti la dichiaro ma non la definisco; se non metto "gInterpreter"
-    # invece, è come se non la dichiarassi.
-    # Ha senso fare la shared library più del jitting? sì, perchè g++ permette di decidere
-    # l'ottimizzazione, il jitting usa la più bassa per essere più veloce.
-    # Ma io che ho fatto in ROOT come la specifico?
-    if iteration==0:
-        ROOT.gInterpreter.ProcessLine('#include "tools.h"')
-        ROOT.gSystem.Load('./tools_cpp.so')
-        logging.info("The shared library has been uploaded.")
-
     # A list of the columns to cache.
-    branchlist_mu = ["Dimuon_mass", "Dimuon_pt", "Dimuon_eta", "Dimuon_phi",
+    branchlist = ["Dimuon_mass", "Dimuon_pt", "Dimuon_eta", "Dimuon_phi",
         "Dimuon_cos", "Dimuon_y"]
 
     rdf_dimu = rdf_cut.\
@@ -128,91 +131,176 @@ def z_analysis(infile, iteration=0):
              Mu_pt[1], Mu_eta[1], Mu_phi[1], Mu_mass[1])[0]").\
         Define("Dimuon_y",\
             "cos_rapidity(Mu_pt[0], Mu_eta[0], Mu_phi[0], Mu_mass[0], \
-             Mu_pt[1], Mu_eta[1], Mu_phi[1], Mu_mass[1])[1]").Cache(branchlist_mu)
-    del rdf
+             Mu_pt[1], Mu_eta[1], Mu_phi[1], Mu_mass[1])[1]").Cache(branchlist)
 
-    ROOT.RDF.SaveGraph(rdf_dimu, "rdf_mu.dot")
+    # Create Graph of the selection and print a report with selection
+    # efficiencies.
     rdf_dimu.Report().Print()
+    ROOT.RDF.SaveGraph(rdf_dimu, "rdf_mu.dot")
     root_file.Close()
 
-    return rdf_dimu
+    #del rdf, rdf_cut
+    return rdf_dimu, N_ev
 
-
-def weight(data_cached, iteration):
-    """ The function computes the numerator and denominator weights for each
+def weight(data_cached, iteration, run):
+    """
+    The function computes the numerator and denominator weights for each
     dileptons, which are necessary to obtain the forward-backward asymmetry.
+    It returns the string of the root file created by a snapshot of the final
+    RDataFrame.
 
-    :param infile: Root file obtained by the function \"z_analysis\".
-    :type infile: root file, required
+    :param infile: RDataFrame cached, obtained by the function \"z_analysis\".
+    :type infile: RDataFrame, required
     :param iteration: number of file analyzed
     :type iteration: int, required
 
     """
-    # Filter on mass in the range of Z resonance.
+    # Filter on mass in the range of Z resonance and report on selection efficiency.
     rdf=data_cached.Filter("Dimuon_mass>60 && Dimuon_mass<120","Cut on Z resonance")
-
     rdf.Report().Print()
 
-    rdf_w = rdf.\
-        Define("w_d", f"weights(Dimuon_pt,Dimuon_mass, Dimuon_cos)[0]").\
-        Define("w_n", f"weights(Dimuon_pt,Dimuon_mass, Dimuon_cos)[1]")
-    del data_cached, rdf
-
-    # A list with the names of the new columns is created in order to make a
-    # snapshot of them
+    snap_name = f"dimuon_w{iteration}[{run}].root"
     branchlist = ["Dimuon_mass", "Dimuon_pt", "Dimuon_eta", "Dimuon_phi",\
         "Dimuon_cos","Dimuon_y","w_d", "w_n"]
 
+    rdf_w = rdf.\
+        Define("w_d", f"weights(Dimuon_pt,Dimuon_mass, Dimuon_cos)[0]").\
+        Define("w_n", f"weights(Dimuon_pt,Dimuon_mass, Dimuon_cos)[1]").\
+        Snapshot("dimuon_w", snap_name, branchlist)
+    #del data_cached, rdf
+
+    # A list with the names of the new columns is created in order to make a
+    # snapshot of them
+    # branchlist = ["Dimuon_mass", "Dimuon_pt", "Dimuon_eta", "Dimuon_phi",\
+    #     "Dimuon_cos","Dimuon_y","w_d", "w_n"]
+
     # A snapshot is done to collect the useful physiscal quantity of the dileptons
     # in a single root file.
-    logger.debug("Starting snapshot...")
-    rdf_w.Snapshot("dimuon_w", f"dimuon_w{iteration}.root", branchlist)
-    logger.info("The snapshot is done.")
+    # logger.debug(" Starting snapshot...")
+    # snap_name = f"dimuon_w{iteration}[{run}].root"
+    # rdf_w.Snapshot("dimuon_w", snap_name, branchlist)
+    ROOT.RDF.SaveGraph(rdf_w, "rdf_w.dot")
+    logger.info(" The snapshot is done.")
 
-    return str(f"dimuon_w{iteration}.root")
+    del rdf_w
 
+    return snap_name
 
-def z_main(url, n):
-    """The function makes the selection of the good events for the analysis and
+def z_main(url, n, run):
+    """
+    The function makes the selection of the good events for the analysis and
     also compute some useful values. It returns a string with the name of the
     root file created at the end of the analysis.
 
-    :param url: the url of the root file uploaded from the web.
+    :param url: the url of the root file to upload from the web.
     :type url: url of root file, required.
     :param n: number of the file analyzed
     :type n: int, required
+
     """
     # Selection on events
-    rdf = z_analysis(url, n)
+    rdf, N_ev_list = z_analysis(url)#, n)
 
     # Cumpute the weights
-    data_string = weight(rdf,n)
+    data_string = weight(rdf, n, run)
 
-    return data_string
+    return data_string, N_ev_list
 
 
-def mass_vs_eta(rdf0, rap_lim, pt_lim, bin, infile=None):
+
+def main2(infile, iteration, run):
+    logger.info("Start the analysis...")
+
+    # Create an RDataFrame to make selection on data from the root file.
+    root_file = ROOT.TFile.Open(infile, "READ")
+    tree_name = root_file.GetListOfKeys().At(0).GetName()
+    rdf = ROOT.RDataFrame(tree_name, root_file)
+    logger.debug(" The RDataFrame have been created.")
+
+    branchlist = ["Dimuon_mass", "Dimuon_pt", "Dimuon_eta", "Dimuon_phi",\
+        "Dimuon_cos","Dimuon_y","w_d", "w_n"]
+
+    snap_name = f"dimuon_w{iteration}[{run}].root"
+
+    # Count of all data in the file.
+    N_ev = rdf.Count().GetValue()
+
+    rdf_cut=rdf.Filter("nMuon>1","Selection on events with at least two muons").\
+        Define("mask", "Muon_isTracker==1 && Muon_isGlobal==1 && "
+        "Muon_gChi2<10 && abs(Muon_dxyBest)<0.2 && Muon_pfRelIso03_all<0.1 && "
+        "abs(Muon_eta)<2.4").\
+        Define("Mu_pt", "Muon_pt[mask]").\
+        Define("Mu_pterr", "Muon_ptErr[mask]").\
+        Define("Mu_mass", "Muon_mass[mask]").\
+        Define("Mu_charge", "Muon_charge[mask]").\
+        Define("Mu_phi", "Muon_phi[mask]").\
+        Define("Mu_eta", "Muon_eta[mask]").\
+        Filter("Mu_pt.size()>=nMuon").\
+        Filter("Mu_pt[0]>25 && Mu_pt[1]>15",
+               "Trigger on the leading and the next leading muons").\
+        Filter("Mu_charge[0]!=Mu_charge[1]",
+               "Selection on muons with opposite charge").\
+        Define("Dimuon_mass", \
+            "dilepton_vec(Mu_pt[0], Mu_eta[0], Mu_phi[0], Mu_mass[0], \
+             Mu_pt[1], Mu_eta[1], Mu_phi[1], Mu_mass[1])[3]").\
+        Define("Dimuon_pt",\
+            "dilepton_vec(Mu_pt[0], Mu_eta[0], Mu_phi[0], Mu_mass[0], \
+             Mu_pt[1], Mu_eta[1], Mu_phi[1], Mu_mass[1])[0]").\
+        Define("Dimuon_eta", \
+            "dilepton_vec(Mu_pt[0], Mu_eta[0], Mu_phi[0], Mu_mass[0], \
+             Mu_pt[1], Mu_eta[1], Mu_phi[1], Mu_mass[1])[1]").\
+        Define("Dimuon_phi",\
+            "dilepton_vec(Mu_pt[0], Mu_eta[0], Mu_phi[0], Mu_mass[0], \
+             Mu_pt[1], Mu_eta[1], Mu_phi[1], Mu_mass[1])[2]").\
+        Define("Dimuon_cos",\
+            "cos_rapidity(Mu_pt[0], Mu_eta[0], Mu_phi[0], Mu_mass[0], \
+             Mu_pt[1], Mu_eta[1], Mu_phi[1], Mu_mass[1])[0]").\
+        Define("Dimuon_y",\
+            "cos_rapidity(Mu_pt[0], Mu_eta[0], Mu_phi[0], Mu_mass[0], \
+             Mu_pt[1], Mu_eta[1], Mu_phi[1], Mu_mass[1])[1]").\
+        Filter("Dimuon_mass>60 && Dimuon_mass<120","Cut on Z resonance").\
+        Define("w_d", f"weights(Dimuon_pt,Dimuon_mass, Dimuon_cos)[0]").\
+        Define("w_n", f"weights(Dimuon_pt,Dimuon_mass, Dimuon_cos)[1]").\
+        Snapshot("dimuon_w", snap_name, branchlist)
+
+
+    ROOT.RDF.SaveGraph(rdf_cut, "rdf_main2.dot")
+    rdf_cut.Report().Print()
+
+    # A snapshot is done to collect the useful physiscal quantity of the dileptons
+    # in a single root file.
+    logger.info(" The snapshot is done.")
+    root_file.Close()
+
+    return snap_name, N_ev
+
+
+def mass_eta(rdf_all, rap_lim, pt_lim, infile=None):
     """
     Plot the Z resonance (mass range from 60 GeV to 120 GeV), for the six
-    different range of rapidity.
-    Data can be passed as RDataFrame, as data cached or as root file. In every
-    case, the name of the TTree has to be "dimuon_w".
+    different range of rapidity. It also make a cut on pt. ????Metti default?
+    Data can be passed as RDataFrame or as root file. In every case, the name
+    of the TTree has to be "dimuon_w".
+    Plot is saved as "Dimuon_mass(rap_inf,rap_sup)_(pt_inf,pt_sup).png" in a
+    directory named "Z analysis".
 
-        - rdf0: an RDataFrame wich contains all data, from the different file.
-            It has to be created outside the function.
-        ...
+        - rdf_all: an RDataFrame wich contains all data.
+        - rap_lim: a tuple with the range limits of rapidity.
+        - pt_lim_ a tuple with the range limits of transverse momentum.
+        - infile:??????
 
-    :param rdf0: RDataFrame to analyze.
-    :type rdf0: RDataFrame, required
+    :param rdf_all: RDataFrame to analyze.
+    :type rdf_all: RDataFrame, required
     :param rap_lim: range limits of rapidity
     :type rap_lim: tuple, required
     :param pt_lim: range limits of pt
     :type pt_lim: tuple, required
+
     """
 
     # RDataFrame with appropriate cuts is created.
     if infile == None:
-        rdf_m=rdf0.\
+        rdf_m=rdf_all.\
             Filter(f"abs(Dimuon_y)<{rap_lim[1]} && abs(Dimuon_y)>{rap_lim[0]}",\
                     "Cut on rapidity").\
             Filter(f"Dimuon_pt>{pt_lim[0]} && Dimuon_pt<{pt_lim[1]}",
@@ -226,13 +314,13 @@ def mass_vs_eta(rdf0, rap_lim, pt_lim, bin, infile=None):
             Filter(f"Dimuon_pt>{pt_lim[0]} && Dimuon_pt<{pt_lim[1]}")
         del rdf
 
-    logger.debug("The RDataFrame is created.")
+    logger.debug(" The RDataFrame is created.")
 
     # Booking histogram
     h = rdf_m.Histo1D(ROOT.RDF.TH1DModel("Mass in defined range rapidity",
-        "Mass in defined range rapidity;Mass [MeV];Events", bin, 60, 120),
+        f"Mass in y [{rap_lim[0]},{rap_lim[1]}];Mass [MeV];Events", 60, 60, 120),
         "Dimuon_mass")
-    logger.info(f"Drawing the mass distribution for {rap_lim[0]}< "
+    logger.info(f" Drawing the mass distribution for {rap_lim[0]}< "
                 f"|Dimuon rapidity| < {rap_lim[1]}")
 
     # Styling
@@ -249,35 +337,37 @@ def mass_vs_eta(rdf0, rap_lim, pt_lim, bin, infile=None):
     # Return in main directory
     os.chdir(os.path.dirname(os. getcwd()))
 
-def cos_vs_eta(rdf0, rap_lim, pt_lim, bin, infile=None):
+def cos_eta(rdf_all, rap_lim, pt_lim, infile=None):
     """
     Plot the cos of Z resonance (mass range from 60 GeV to 120 GeV), for the six
-    different range of rapidity.
-    Data can be passed as RDataFrame, as data cached or as root file. In every
-    case, the name of the TTree has to be "dimuon_w".
+    different range of rapidity. It also make a cut on pt.
+    Data can be passed as RDataFrame or as root file. In every case, the name
+    of the TTree has to be "dimuon_w".
+    Plot is saved as "Dimuon_cos(rap_inf,rap_sup)_(pt_inf,pt_sup).png" in a
+    directory named "Z analysis".
 
-        - rdf0: an RDataFrame wich contains all data, from the different file.
-            It has to be created outside the function.
-        ...
+        - rdf_all: an RDataFrame wich contains all data.
+        - rap_lim: a tuple with the range limits of rapidity.
+        - pt_lim_ a tuple with the range limits of transverse momentum.
+        - infile:??????
 
-    :param rdf0: RDataFrame to analyze.
-    :type rdf0: RDataFrame, required
+    :param rdf_all: RDataFrame to analyze.
+    :type rdf_all: RDataFrame, required
     :param rap_lim: range limits of rapidity
     :type rap_lim: tuple, required
     :param pt_lim: range limits of pt
     :type pt_lim: tuple, required
-    :param data_cached: range limits of rapidity
-    :type rap_lim: tuple, required
     """
 
     # RDataFrame with appropriate cuts is created.
     if infile == None:
-        rdf_m=rdf0.\
+        rdf_m=rdf_all.\
             Filter(f"abs(Dimuon_y)<{rap_lim[1]} && abs(Dimuon_y)>{rap_lim[0]}",\
                     "Cut on rapidity").\
             Filter(f"Dimuon_pt>{pt_lim[0]} && Dimuon_pt<{pt_lim[1]}",
                     "Cut on pt")
         rdf_m.Report().Print()
+        del rdf_all
     else:
         t_name = infile.replace(".root", "")
         rdf = ROOT.RDataFrame(t_name,infile)
@@ -286,12 +376,13 @@ def cos_vs_eta(rdf0, rap_lim, pt_lim, bin, infile=None):
             Filter(f"Dimuon_pt>{pt_lim[0]} && Dimuon_pt<{pt_lim[1]}")
         del rdf
 
-    logger.debug("The RDataFrame is created.")
+    logger.debug(" The RDataFrame is created.")
 
     # Booking histogram
     h = rdf_m.Histo1D(ROOT.RDF.TH1DModel("Cos in defined range rapidity",
-        "cos(#theta *) in defined range rapidity;Cos;Events",bin,-1,1),f"Dimuon_cos")
-    logger.info(f"Drawing the cos(theta*) distribution for {rap_lim[0]}< "
+        f"cos(#theta *) in y [{rap_lim[0]},{rap_lim[1]}];Cos;Events",40,-1,1),
+        f"Dimuon_cos")
+    logger.info(f" Drawing the cos(theta*) distribution for {rap_lim[0]}< "
                 f"|Dimuon rapidity| < {rap_lim[1]}")
 
     # Styling
@@ -309,28 +400,24 @@ def cos_vs_eta(rdf0, rap_lim, pt_lim, bin, infile=None):
 
 
 
-def afb(rdf0, pt_lim, infile=None):
-    """ The function calculates the value of Afb (Asymmetry forward-backward)
-     using the \"angular event weighting\" in the six different ranges of
-     rapidity, for each mass.
-     It creates different \".txt\" files with the results.
+def afb(rdf0, pt_lim):
+    """
+    The function calculates the value of Afb (Asymmetry forward-backward)
+    using the \"angular event weighting\" in the six different ranges of
+    rapidity, for each mass.
+    It creates different \".txt\" files with the results.
     """
 
-    logger.info("Starting the calculation of Afb...")
+    logger.info(" Starting the calculation of Afb...")
     t_name="dimuon_w"
 
     # Create RDataFrame
-    if infile==None:
-        rdf=rdf0.Filter(f"Dimuon_pt>{pt_lim[0]} && Dimuon_pt<{pt_lim[1]}")
-        rdf.Report().Print()
-    else:
-        t_name = infile.replace(".root", "")
-        rdf = ROOT.RDataFrame(t_name, infile).Filter(f"Dimuon_pt>{pt_lim[0]} && "
-            f"Dimuon_pt<{pt_lim[1]}")
+    rdf=rdf0.Filter(f"Dimuon_pt>{pt_lim[0]} && Dimuon_pt<{pt_lim[1]}")
+    rdf.Report().Print()
 
-    logger.debug("The RDataFrame has been created.")
+    logger.debug(" The RDataFrame has been created.")
 
-    #
+
     for j in range(0, len(utils.RAPIDITY_BIN), 1):
         # Retrieve rapidity range bin from dictionary RAPIDITY_BIN
         rap_lim = utils.RAPIDITY_BIN[f"{j}"]
@@ -365,14 +452,14 @@ def afb(rdf0, pt_lim, infile=None):
                 except ZeroDivisionError:
                     Afb = -100
                     A4 = -100
-                    logger.error("A ZeroDivisionError occured. Values are set"
+                    logger.error(" A ZeroDivisionError occured. Values are set"
                                  " to \"-100\".")
 
                 M = m_lim[0] +((m_lim[1]-m_lim[0])/2)
 
                 print(Afb, M, A4,file=outf)
 
-    del rdf_y, rdf_m, rdf_f, rdf_b
+    #del rdf_y, rdf_m, rdf_f, rdf_b, rdf
 
 
 def afb_plot(infile, pt_lim):
@@ -409,6 +496,46 @@ def afb_plot(infile, pt_lim):
     c.Print(f"{file_name}]", f"Title:{name}")
 
 
+
+
+
+
+def mass_pt(rdf):
+    for a, b in zip(range(10,120, 10), range(20, 130, 10)):
+        print(a, b)
+        bin = 20
+        rdfc = rdf.Filter(f"Dimuon_pt>{a} && Dimuon_pt<{b}")
+        h = rdfc.Histo1D(ROOT.RDF.TH1DModel("Mass in defined pt range ",
+            "Mass in defined pt range;Mass [MeV];Events", bin, 60, 120), "Dimuon_mass")
+        h_eta = rdfc.Histo1D(ROOT.RDF.TH1DModel("Eta in defined pt range ",
+            "Eta in defined pt range;Eta [a.u.];Events", bin, -6, 6), "Dimuon_eta")
+        h_y = rdfc.Histo1D(ROOT.RDF.TH1DModel("Rapidity in defined pt range ",
+            "Rapidity in defined pt range;Rapidity [a.u.];Events", bin, -4, 4), "Dimuon_y")
+        h_cos = rdfc.Histo1D(ROOT.RDF.TH1DModel("Cos in defined pt range ",
+            "Cos in defined pt range;Cos [rad];Events", bin, -1, 1), "Dimuon_cos")
+        logger.info(" The histogram is booked.")
+
+        c = ROOT.TCanvas("Z mass", "Z mass")
+        c.SetGrid()
+        ROOT.gPad.SetLogy()
+        ROOT.gStyle.SetOptStat("e")
+        h.Draw()
+
+        # Change directory to save results in "Z analysis"
+        os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}','Z analysis')))
+        c.SaveAs(f"Dimuon_mass_pt({a}, {b}).png")
+        h_eta.Draw()
+        c.SaveAs(f"Dimuon_eta_pt({a}, {b}).png")
+        h_y.Draw()
+        c.SaveAs(f"Dimuon_y_pt({a}, {b}).png")
+        h_cos.Draw()
+        c.SaveAs(f"Dimuon_cos_pt({a}, {b}).png")
+
+        # Return in main directory
+        os.chdir(os.path.dirname(os. getcwd()))
+
+
+
 if __name__ == "__main__":
 
     # Set ROOT environment
@@ -430,16 +557,19 @@ if __name__ == "__main__":
     ROOT.gROOT.SetStyle("My Style")
     myStyle.cd()
 
-    # Start the the timer
-    timer = ROOT.TStopwatch()
-    timer.Start(ROOT.kFALSE)
+    # Load the shared library "tools.cpp" which contains some functions to
+    # calculate the useful quantities for the analysis.
+    ROOT.gInterpreter.ProcessLine('#include "tools.h"')
+    ROOT.gSystem.Load('./tools_cpp.so')
 
-    start =time.time()
+    # Start the the timer
+    start = time.time()
+    start_cpu = time.process_time()
 
     # Creating the parser
     parser = argparse.ArgumentParser(description =
         "Processing the root file of data.")
-    parser.add_argument("-f", "--file",required=True, type=str,
+    parser.add_argument("-f", "--file",required=True, type=str, nargs="+",
         help="The name of the file index to pass to the script. "
              "It has to contain the path of the different root files to analyze,"
              "which are part of the dataset.E.g.:\"Run2011A_SingleMu_index.txt\"")
@@ -449,79 +579,99 @@ if __name__ == "__main__":
              " Format: -l start stop. \"stop\" is excluded.")
     parser.add_argument("-a", "--analysis", type=str, default=str(True),
         nargs="?", help="If True, retrieve data from internet, otherwise not. "
-        "Default value is True.")
+        "Default value is True. The range of files selected must be already "
+        "analyzed!! Otherwise the script don't consider them.")
     args = parser.parse_args()
 
     # Creating the logger
-    logger = utils.set_logger("Z analysis")
+    logger = utils.set_logger("Z analysis", logging.DEBUG)
 
     # Z ANALYSIS
-    logger.info("Starting the analysis of the Forward-Backward asymmetry"
+    logger.info(" Starting the analysis of the Forward-Backward asymmetry"
                 " of the Z resonance.")
 
     # A new folder to collect plots and data is created
     os.makedirs("Z analysis", exist_ok=True)
     os.makedirs("Snapshots", exist_ok=True)
-    logger.debug("The new directories \"Z analysis\" and \"Snapshots\" are created.")
+    logger.debug(" The new directories \"Z analysis\" and \"Snapshots\" are created.")
 
     # Enable the multi-threading analysis
     if not args.display:
         nthreads = 10
         ROOT.ROOT.EnableImplicitMT(nthreads)
 
-############### CONTROLLA INPUT #######
-    # Check on the validity of the inserted input.
+    # Check on the validity of the inserted input (-l).
+    lim=[]
+    N_tot_files = 0
     try:
-        limits = tuple(args.limit)
+        for n in range(0, len(args.limit), 2):
+            limits= (args.limit[n], args.limit[n+1])
+            lim.append(limits)
+            N_tot_files+=(args.limit[n+1] - args.limit[n])  #????
     except ValueError:
-        logging.error("The inserted values are not right. Check on signature "
-                      "in the help's parser.")
+        logger.error("The inserted values are not right. Check on the input "
+                      "signature in the help's parser. First index has to be"
+                      "greater than the second.")
+
+    # Check the correspondance between number of index files and limits inserted.
+    if len(args.file)!=len(lim):
+        logger.error(" There isn't correspondance between number of index "
+            "files and ranges inserted. Please, check on help's parser.")
+        exit()
 
     # Retrieve dataset from the web and start the selection on good events.
     if args.analysis==str(True):
-        root_files, times = retrieve_dataset(args.file, limits[0], limits[1])
-        with open(f"times.txt", "w+") as outf:
-            for t in times:
-                print(t, file=outf)
+        root_files=ROOT.std.vector("string")() #allocare gli slot giusti?
+        root_files.reserve(N_tot_files) ####????
+        times = []
+        N_times = []
+        for f, limits in zip(args.file, lim):
+            root_files0, ftime, N_time = retrieve_dataset(f, limits[0], limits[1])
+            root_files+=root_files0
+            times+=ftime
+            N_times+=N_time
+            with open("Analyzed_files.txt", "w") as outf1:
+                for r in root_files:
+                    print(r, file=outf1)
+
+        # Save and plot histogram time vs N° events anayzed for each file
+        with open(f"times({args.file}).txt", "w+") as outf2:
+            for t, N_t in zip(times, N_times):
+                print("time:N_events\n")
+                print(t, N_t, file=outf2)
+
+        h_times = ROOT.TH1D("h_times", f"Times [n_threads set = {nthreads}];"
+            "t [s];Events", 10, 0, 200)
+        for t, N_time in zip(times, N_times):
+            h_times.Fill(t,N_time)
+        c_times = ROOT.TCanvas("Times", "Times")
+        h_times.Draw()
+        c_times.SaveAs("times_vs_N.png")
+        logger.info(" Plot times saved.")
 
         # Create a RDataFrame with all the selected data.
         all_data = ROOT.RDataFrame("dimuon_w", root_files).Cache()
-        N = all_data.Count().GetValue()
-        logger.info(f"Total number of events that passed the cuts is {N}.")
+        #all_data = ROOT.RDataFrame("dimuon_w", "dimuon_w*.root").Cache() #.Filter("Dimuon_pt>0").Cache()
+        logger.info(f" Total number of events that passed the cuts is "
+                    f"{all_data.Count().GetValue()}.")
+        print(all_data.GetNSlots())
+
     elif args.analysis==str(False):
         root_files = ROOT.std.vector("string")()
-        root_files2 = ["dimuon_w0.root", "dimuon_w1.root", "dimuon_w2.root", "dimuon_w3.root", "dimuon_w4.root",
-         "dimuon_w5.root", "dimuon_w6.root", "dimuon_w7.root", "dimuon_w8.root", "dimuon_w9.root", "dimuon_w10.root",
-          "dimuon_w11.root", "dimuon_w12.root", "dimuon_w13.root", "dimuon_w14.root", "dimuon_w15.root", "dimuon_w16.root",
-          "dimuon_w17.root", "dimuon_w18.root", "dimuon_w19.root", "dimuon_w20.root", "dimuon_w21.root", "dimuon_w22.root",
-          "dimuon_w23.root", "dimuon_w24.root", "dimuon_w25.root", "dimuon_w26.root", "dimuon_w27.root", "dimuon_w28.root",
-          "dimuon_w29.root", "dimuon_w30.root", "dimuon_w31.root", "dimuon_w32.root", "dimuon_w33.root", "dimuon_w34.root",
-          "dimuon_w35.root", "dimuon_w36.root", "dimuon_w37.root", "dimuon_w38.root", "dimuon_w39.root", "dimuon_w40.root",
-          "dimuon_w41.root", "dimuon_w42.root", "dimuon_w43.root", "dimuon_w44.root", "dimuon_w45.root", "dimuon_w46.root",
-          "dimuon_w47.root", "dimuon_w48.root", "dimuon_w49.root", "dimuon_w50.root", "dimuon_w51.root", "dimuon_w52.root",
-          "dimuon_w53.root", "dimuon_w54.root", "dimuon_w55.root", "dimuon_w56.root", "dimuon_w57.root", "dimuon_w58.root",
-          "dimuon_w59.root", "dimuon_w60.root", "dimuon_w61.root", "dimuon_w62.root", "dimuon_w63.root", "dimuon_w64.root",
-          "dimuon_w65.root", "dimuon_w66.root", "dimuon_w67.root", "dimuon_w68.root", "dimuon_w69.root", "dimuon_w70.root",
-          "dimuon_w71.root", "dimuon_w72.root", "dimuon_w73.root", "dimuon_w74.root", "dimuon_w75.root", "dimuon_w76.root",
-          "dimuon_w77.root", "dimuon_w78.root", "dimuon_w79.root", "dimuon_w80.root", "dimuon_w81.root", "dimuon_w82.root",
-          "dimuon_w83.root", "dimuon_w84.root", "dimuon_w85.root", "dimuon_w86.root", "dimuon_w87.root", "dimuon_w88.root",
-          "dimuon_w89.root", "dimuon_w90.root", "dimuon_w91.root", "dimuon_w92.root", "dimuon_w93.root", "dimuon_w94.root",
-          "dimuon_w95.root", "dimuon_w96.root", "dimuon_w97.root", "dimuon_w98.root"]
-
-        file_start = limits[0]
-        file_stop = limits[1]
-        for t in root_files2[file_start:file_stop]:
-            root_files.push_back(t)
+        with open("Analyzed_files.txt") as inf:
+            for line in inf:
+                line = line.replace("\n", "")
+                root_files.push_back(line)
 
         # Create a RDataFrame with all the selected data.
         os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Snapshots')))
         all_data = ROOT.RDataFrame("dimuon_w", root_files).Cache()
-        N = all_data.Count().GetValue()
-        logger.info(f"Total number of events that passed the cuts is {N}.")
+        N_tot = all_data.Count().GetValue()
+        logger.info(f" Total number of events that passed the cuts is {N_tot}.")
         os.chdir(os.path.dirname(os. getcwd()))
 
     else:
-        logger.error("Invalid input for \"-a\" option. "
+        logger.error(" Invalid input for \"-a\" (analysis) option. "
                     "Possibilities are: True or False.")
         exit()
 
@@ -531,48 +681,38 @@ if __name__ == "__main__":
         for f in root_files:
             os.replace(f'{os.getcwd()}/{f}', f'Snapshots/{f}')
 
-        logger.info(f"Time to move the files: {time.time()-start_move}")
+        logger.info(f" Time to move the files: {time.time()-start_move}")
 
     # Plot the distributions of mass and cos(theta*) in different range of
-    # rapidity.
+    # rapidity. "pt_lim" is a tuple to set the limits on transverse momentum.
     pt_lim = (10,100)
-    #pt_lim = (20,120)
-    #pt_lim = (80,100)
 
     for i in range(0, len(utils.RAPIDITY_BIN), 1):
         # Retrieve the values of eta range bins (y_inf, y_sup)
         y_lim = utils.RAPIDITY_BIN[f"{i}"]
 
-        ######### BINNAGGIO con NUMERO DI DATI?????????????????????
-        bin = 40 #binning
-        mass_vs_eta(all_data,y_lim,pt_lim,bin)
-        cos_vs_eta(all_data,y_lim,pt_lim,bin)
+        # Plot of mass and cos(theta*) in six rapidity bins.
+        mass_eta(all_data,y_lim,pt_lim)
+        cos_eta(all_data,y_lim,pt_lim)
 
     # Compute AFB (Forward_Backward Asymmetry)
     afb(all_data, pt_lim)
 
-    # Plot AFB for different cut in pt
+    # Plot AFB results
     os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Z analysis')))
 
-
     # Create a txt with a list of the files from which takes values.
-    pt_plot = [f"{pt_lim}"]
-    for p in pt_plot:
-        pathlist = Path("").glob(f"*_{p}dimuon_w.txt")
-        with open(f"Afblist_{p}.txt", "w+") as outf:
-            for path in pathlist:
-                print(path, file=outf)
+    pathlist = Path("").glob(f"*_{pt_lim}dimuon_w.txt")
+    with open(f"Afblist_{pt_lim}.txt", "w+") as outf:
+        for path in pathlist:
+            print(path, file=outf)
 
     # Dimuon Afb plots
-    logger.info("Plotting Afb results...")
-    for p in pt_plot:
-        afb_plot(f"Afblist_{p}.txt", pt_lim)
+    logger.info(" Plotting Afb results...")
+    afb_plot(f"Afblist_{pt_lim}.txt", pt_lim)
+
     os.chdir(os.path.dirname(os. getcwd()))
 
-    # poi vedi come cambiare i programmi  per riprodurre la roba su più file
-
     # Elapsed time
-    timer.Stop()
-    print(f"Elapsed: {time.time()-start} seconds")
-    logger.info(f"Elapsed time from the beginning is: {timer.RealTime()}(real time) seconds")
-    logger.info(f"Elapsed time from the beginning is: {timer.CpuTime()}(cpu time) seconds")
+    logger.info(f" Elapsed time from the beginning is: {time.time()-start}(real time) seconds")
+    logger.info(f" Elapsed time from the beginning is: {time.process_time()-start_cpu}(cpu time) seconds")

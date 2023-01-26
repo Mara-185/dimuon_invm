@@ -25,17 +25,17 @@ if __name__ == "__main__":
     gZ = ROOT.TCurlyLine(35, 30, 80, 30)
     gZ.SetWavy()
     gZ.Draw()
-    label.DrawLatex(57,37.7,"#gamma/Z0");
+    label.DrawLatex(57,37.7,"#gamma/Z_{0}");
 
     line3 = ROOT.TLine(80, 30, 100, 10)
     line3.Draw()
     line4 = ROOT.TLine(80, 30, 100, 50)
     line4.Draw()
 
-    label.DrawLatex(100,6,"l+")
-    label.DrawLatex(100,55,"l-")
+    label.DrawLatex(100,6,"l^{+} (#mu^{+})")
+    label.DrawLatex(100,55,"l^{-} (#mu^{-})")
 
-    label.DrawLatex(60, 5, "#bar{q}q -> #gamma/Z0 -> l+l-")
+    label.DrawLatex(60, 5, "#bar{q}q -> #gamma/Z_{0} -> l^{+}l^{-}")
 
 
     c.Update()
