@@ -16,6 +16,11 @@ package_root = os.path.abspath('../..')
 sys.path.insert(0, package_root)
 sys.path.insert(0, os.path.join(package_root, package_name))
 
+package_name = 'utils'
+package_root = os.path.abspath('../../Z_asymmetry')
+sys.path.insert(0, package_root)
+sys.path.insert(0, os.path.join(package_root, package_name))
+
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
