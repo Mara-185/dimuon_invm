@@ -51,7 +51,7 @@ from pathlib import Path
 # def main(infile, particle="all"):
 
 # Creating the logger and setting its level
-logger = utils.set_logger("Analysis")
+logger = utils.set_logger("Analysis", logging.DEBUG)
 
 def leptons_analysis(infile):
     """ It takes in input a nano-AOD data file and returns two root files, named:
@@ -796,7 +796,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Creating the logger and setting its level
-    logger = utils.set_logger("Dimuon_invm")
+    logger = utils.set_logger("Dimuon_invm", logging.DEBUG)
 
     logger.info("Starting the analysis of the root file nanoAOD...")
 

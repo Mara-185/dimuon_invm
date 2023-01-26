@@ -2,9 +2,16 @@ API documentation
 =================
 
 dimuon_invm
-utils
 ---------------------------
 .. automodule:: dimuon_invm
-   :members:
+ :members:
+
+utils
+---------------------------
 .. automodule:: utils
-   :members:
+ :members:
+
+Z_asymmetry
+---------------------------
+.. automodule:: Z_asymmetry
+ :members:
