@@ -24,6 +24,16 @@ def write_fitresults(results, filename):
     text.close()
 
 
+def retrieve_dataset(findex, start, stop):
+
+    with open(findex) as inf:
+        data = [_.rstrip('\n') for _ in inf]
+        logger.info(f"Total number of data files: {len(data)}\n")
+        inp = input("Insert the range of file to analyze (first,last):\n")
+        d = data[int(inp[1]):int(inp[3])]
+    return d
+
+
 # Dictionary with particles' mass range for the fit.
 # "particle" : (lower_mass_limit, upper_mass_limit)
 
@@ -41,7 +51,7 @@ PARTICLES_MASS_RANGE = {
   "Y3": (10.1, 10.6)
 }
 
-#Dictionary with intialization parameters for the fit and plot styling
+# Dictionary with intialization parameters for the fit and plot styling
 # "particle" :
 # (mean0,sigma0,signal,n° parameters for background,xmax(box),ymax(box),name,
 #   n° total parameters )

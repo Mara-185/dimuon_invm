@@ -11,7 +11,6 @@ from pathlib import Path
 
 
 """The script takes as argument:
-
     - the data file (URL) of dileptons (-f), for example: "root:
      //eospublic.cern.ch//eos/root-eos/cms_opendata_2012_nanoaod/Run2012B_DoubleMuParked.root";
     - the string of the particle's name (-p) to analyze and fit, among those in
@@ -21,7 +20,6 @@ from pathlib import Path
       " ' " character gives some troubles.
 
       There are different functions for the main analysis, among which:
-
       - "leptons_analysis" which selects the couple of muons and electrons which
         are interesting in order to create the dimuon mass spectrum and for
         further analysis;
@@ -32,8 +30,7 @@ from pathlib import Path
         the particle chosen in the spectrum;
 
       For the extimation of the weak mixing angle studying the angular properties
-      of the Z boson, it's necessary to import the module "Z_asymmetry.py":
-
+      of the Z boson:
       - "weight" which calculates other useful variables for the analysis;
       - "afb" which estimate, from the varibles obtained by the previous function,
         the mean values of Afb (forward-backward asymmetry) in different bins
@@ -41,11 +38,9 @@ from pathlib import Path
         of mass).
 
     In the analysis the following version have been used:
-
     - Python v3.8
     - ROOT v6.24 ("source ~/root/bin/thisroot.sh" command needed before starting
         the analysis to set the environment of ROOT)
-
 """
 
 # def main(infile, particle="all"):
@@ -59,7 +54,6 @@ def leptons_analysis(infile):
     to different quantity, for example:
     ["Dimuon_mass", "Dimuon_pt", "Dimuon_eta", "Dimuon_phi"].
     It returns the data cached in memory, in order to speed up further analysis.
-
     """
 
     # Enable parallel analysis
@@ -76,13 +70,13 @@ def leptons_analysis(infile):
 
     # Filter on two muons and two electrons with opposite charge
     rdf_mu = rdf.Filter("nMuon==2","Selection of two muons").\
-                 Filter("Muon_charge[0]!=Muon_charge[1]",\
-                        "Selection of muons with opposite charge")
+     Filter("Muon_charge[0]!=Muon_charge[1]",\
+                "Selection of muons with opposite charge")
     logger.info("The cut on two muons with opposite charge is done.")
 
     rdf_e = rdf.Filter("nElectron==2","Selection of two electrons").\
-                Filter("Electron_charge[0]!=Electron_charge[1]",\
-                       "Selection of electrons with opposite charge")
+     Filter("Electron_charge[0]!=Electron_charge[1]",\
+                "Selection of electrons with opposite charge")
     logger.info("The cut on two electrons with opposite charge is done.")
 
     # Print cutflows
@@ -228,8 +222,7 @@ def leptons_analysis(infile):
 def mumu_spectrum(infile, mu_cached=None):
     """It takes in input the root data file or the data cached obtained by the
     function "leptons_analysis" named "dimuon.root" and plot the histogram of
-    the dimuons invariant mass.
-    """
+    the dimuons invariant mass."""
 
     #Histogram of dimuon mass
     if mu_cached == None:
@@ -276,8 +269,7 @@ def mumu_spectrum(infile, mu_cached=None):
 def mumu_spectrum_bump(infile, mu_cached=None):
     """It takes in input the root data file or the data cached obtained by the
     function "leptons_analysis" named "dimuon.root" and plot the histogram of
-    the dimuons invariant mass with a cut for events which have pt>20 GeV.
-    """
+    the dimuons invariant mass with a cut for events which have pt>20 GeV."""
 
     if mu_cached == None:
         t_name = infile.replace(".root", "")
@@ -328,8 +320,7 @@ def mumu_spectrum_bump(infile, mu_cached=None):
 def mumu_eta(infile, mu_cached=None):
     """It takes in input the root data file or the data cached obtained by the
     function "leptons_analysis" named "dimuon.root" and plot the histogram of
-    the dimuons pseudorapidity.
-    """
+    the dimuons pseudorapidity."""
 
     if mu_cached == None:
         t_name = infile.replace(".root", "")
@@ -372,7 +363,9 @@ def resonance_fit(infile, particle, mu_cached=None):
         \"Z\", \"all\."
         It retrieves a plot with the fit and a txt file with fit results, for
         each resonance.
-    """
+
+         and a workspace
+        ????????????????????????????????????????????????????????"""
 
     # An auxiliary TTree from the root data file is created.
     if mu_cached == None:
@@ -605,13 +598,11 @@ def resonance_prop(infile, mu_cached=None, particle="all"):
     """The function creates different plots of the main properties of the
     resonances such as transverse momentum, pseudorapidity and azimuthal angle.
     It takes in input :
-
     - the root data file or the data cached obtained by the function "
         leptons_analysis" named "dimuon.root" which contains pt, phi, eta and
         the invariant mass of the dimuons;
     - a string with the name of the resonance; the default value is "all", in
         this case plots of all resonances' properties are created.
-
     """
 
     # Cuts on pt
@@ -837,47 +828,6 @@ if __name__ == "__main__":
     # Z ANALYSIS
     os.makedirs("Z analysis", exist_ok=True)
     logger.debug("The new directory \"Z analysis\" is created")
-
-    # Plot Z resonance and cos(theta*)in different rapidity ranges for both
-    # dimuons and dielectrons data
-    data = ["dimuon", "dielectron"]
-    cached = [dimu_cached, diel_cached]
-    for i in range(0, len(utils.RAPIDITY_BIN), 1):
-
-        # Retrieve the values of eta range bins (y_inf, y_sup)
-        y_lim = utils.RAPIDITY_BIN[f"{i}"]
-
-        # Cut on pt to reduce background (pt_inf, pt_sup)
-        pt_lim = (10,100)
-        pt_lim2 = (80,100)
-
-        bin = 40 #binning
-        for dilepton, cache in zip(data, cached):
-            #Z_asymmetry.mass_vs_eta(f"{dilepton}.root",y_lim,pt_lim,bin,cache)
-            #Z_asymmetry.cos_vs_eta(f"{dilepton}.root",y_lim,pt_lim,bin,cache)
-            pass
-
-    # AFB (Forward_Backward Asymmetry)
-    #Z_asymmetry.weight("dimuon.root", dimu_cached)
-    Z_asymmetry.afb("dimuon_w.root", pt_lim)
-
-    # Plot AFB for different cut in pt
-
-    os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Z analysis')))
-
-    # Create a txt with a list of the files from which takes values.
-    pt_plot = [f"{pt_lim}", f"{pt_lim2}"]
-    print(pt_plot[0])
-    for p in pt_plot:
-        pathlist = Path("").glob(f"*_{p}dimuon_w.txt")
-        with open(f"Afblist_{p}.txt", "w+") as outf:
-            for path in pathlist:
-                print(path, file=outf)
-
-    # Dimuon Afb plots
-    for p in pt_plot:
-        Z_asymmetry.afb_plot(f"Afblist_{p}.txt")
-    os.chdir(os.path.dirname(os. getcwd()))
 
 
     # Elapsed time
