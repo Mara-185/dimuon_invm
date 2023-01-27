@@ -11,36 +11,40 @@ from pathlib import Path
 
 """
 The script takes as argument:
-- the data file (URL) of dileptons (-f), for example: "root:
-//eospublic.cern.ch//eos/root-eos/cms_opendata_2012_nanoaod/Run2012B_DoubleMuParked.root";
-- the string of the particle's name (-p) to analyze and fit, among those in
-the dimuon spectrum, which are :
-"eta", "rho","omega", "phi", "J-psi", "psi'", "Y", "Z".
-Better put the string in quotes, because for example for the "psi'" the
-" ' " character gives some troubles.
+
+    - the data file (URL) of dileptons (-f), for example: "root:
+        //eospublic.cern.ch//eos/root-eos/cms_opendata_2012_nanoaod/Run2012B_DoubleMuParked.root";
+    - the string of the particle's name (-p) to analyze and fit, among those
+        in the dimuon spectrum, which are :
+        "eta", "rho","omega", "phi", "J-psi", "psi'", "Y", "Z".
+        Better put the string in quotes, because for example for the "psi'" the
+        " ' " character gives some troubles.
 
 There are different functions for the main analysis, among which:
-- "leptons_analysis" which selects the couple of muons and electrons which
-are interesting in order to create the dimuon mass spectrum and for
-further analysis;
-- "mumu_spectrum" which plot the dimuon mass spectrum.
-- "resonance_fit" solves every resonance and returns the plot with the fit
-and a txt with the fit results.
-- "resonance_prop" creates different plots of the main characteristics of
-the particle chosen in the spectrum;
+
+    - "leptons_analysis" which selects the couple of muons and electrons which
+        are interesting in order to create the dimuon mass spectrum and for
+        further analysis;
+    - "mumu_spectrum" which plot the dimuon mass spectrum.
+    - "resonance_fit" solves every resonance and returns the plot with the fit
+        and a txt with the fit results.
+    - "resonance_prop" creates different plots of the main characteristics of
+        the particle chosen in the spectrum;
 
 For the extimation of the weak mixing angle studying the angular properties
 of the Z boson, it's necessary to import the module "Z_asymmetry.py":
-- "weight" which calculates other useful variables for the analysis;
-- "afb" which estimate, from the varibles obtained by the previous function,
-the mean values of Afb (forward-backward asymmetry) in different bins
-of mass and pseudorapidity (in total 6 bins of pseudorapidity and 12 bins
-of mass).
+
+    - "weight" which calculates other useful variables for the analysis;
+    - "afb" which estimate, from the varibles obtained by the previous function,
+        the mean values of Afb (forward-backward asymmetry) in different bins
+        of mass and pseudorapidity (in total 6 bins of pseudorapidity and 12 bins
+        of mass).
 
 In the analysis the following version have been used:
-- Python v3.8
-- ROOT v6.24 ("source ~/root/bin/thisroot.sh" command needed before starting
-the analysis to set the environment of ROOT)
+
+    - Python v3.8
+    - ROOT v6.24 ("source ~/root/bin/thisroot.sh" command needed before starting
+        the analysis to set the environment of ROOT)
 
 """
 
