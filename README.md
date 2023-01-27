@@ -11,6 +11,3 @@ E.g. for the Y(1S,2S,3S):
 ![Image](Y_fit.png "icon")
 
 * **Z_asymmetry**: Seleziona coppie di muoni che passano una particolare selezione (referenza: [link](https://arxiv.org/abs/1806.00863)) e riproduce il plot della Forward-Backward asymmetry in sei diversi range di rapidita'.
-
-> [!NOTE]
-> Information the user should notice even if skimming.
