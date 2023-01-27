@@ -1,11 +1,13 @@
-"""In this module a few functions are implemented in order to study the
-    \"Forward-Backward asymmetry" for the Z boson decay.
-    The analysis is done in six different rapidity ranges of equal size and
-    twelve mass bins:
-    - Mass bins from article : 60 < Mass < 120:
-    [60, 70, 78, 84, 87, 89, 91, 93, 95, 98, 104, 112, 120];
-    - Rapidity bins of equal size for \|rapidity\| < 2.4:
-    [0, 0.4, 0.8, 1.2, 1.6, 2.0, 2.4]
+"""
+In this module a few functions are implemented in order to study the
+\"Forward-Backward asymmetry" for the Z boson decay.
+The analysis is done in six different rapidity ranges of equal size and
+twelve mass bins:
+- Mass bins : 60 < Mass < 120:
+[60, 70, 78, 84, 87, 89, 91, 93, 95, 98, 104, 112, 120];
+- Rapidity bins of equal size for \|rapidity\| < 2.4:
+[0, 0.4, 0.8, 1.2, 1.6, 2.0, 2.4]
+
 """
 
 import ROOT
@@ -26,10 +28,10 @@ def retrieve_dataset(findex, start, stop):
     (The file index of the chosen dataset has to be downloaded)
     Two lists and a standard vector are returned in order to save the time
     needed to analyze each file, its number of events and the name of the
-    snapshot created in the "z_main" fucntion.
+    snapshot created in the "z_main" function.
 
     :param findex : index of root files which make up the entire dataset
-    :type findex: string of txt file, required.
+    :type findex: string of txt file, required
     :param start: first index of the range of files to analyze
     :type start: int, required
     :param stop: second index of the range of files to analyze
@@ -300,18 +302,14 @@ def mass_eta(rdf_all, rap_lim, pt_lim, infile=None):
     It also possible make plots with data saved in a root file, but the name of
     the TTree has to be the same of the file.
 
-        - rdf_all: an RDataFrame wich contains all data.
-        - rap_lim: a tuple with the range limits of rapidity.
-        - pt_lim: a tuple with the range limits of transverse momentum.
         - infile: file from which retrieve data. ???????????
 
     :param rdf_all: RDataFrame to analyze.
     :type rdf_all: RDataFrame, required
     :param rap_lim: range limits of rapidity
     :type rap_lim: tuple, required
-    :param pt_lim: range limits of pt
+    :param pt_lim: range limits of transverse momentum
     :type pt_lim: tuple, required
-
 
     """
 
@@ -354,6 +352,7 @@ def mass_eta(rdf_all, rap_lim, pt_lim, infile=None):
     # Return in main directory
     os.chdir(os.path.dirname(os. getcwd()))
 
+
 def cos_eta(rdf_all, rap_lim, pt_lim, infile=None):
     """
     Plot the cos of Z resonance (mass range from 60 GeV to 120 GeV), for the six
@@ -363,17 +362,15 @@ def cos_eta(rdf_all, rap_lim, pt_lim, infile=None):
     Plot is saved as "Dimuon_cos(rap_inf,rap_sup)_(pt_inf,pt_sup).png" in a
     directory named "Z analysis".
 
-        - rdf_all: an RDataFrame wich contains all data.
-        - rap_lim: a tuple with the range limits of rapidity.
-        - pt_lim: a tuple with the range limits of transverse momentum.
         - infile:??????
 
     :param rdf_all: RDataFrame to analyze.
     :type rdf_all: RDataFrame, required
     :param rap_lim: range limits of rapidity
     :type rap_lim: tuple, required
-    :param pt_lim: range limits of pt
+    :param pt_lim: range limits of transverse momentum
     :type pt_lim: tuple, required
+
     """
 
     # RDataFrame with appropriate cuts is created.
@@ -416,13 +413,18 @@ def cos_eta(rdf_all, rap_lim, pt_lim, infile=None):
     os.chdir(os.path.dirname(os. getcwd()))
 
 
-
 def afb(rdf0, pt_lim):
     """
     The function calculates the value of Afb (Asymmetry forward-backward)
     using the \"angular event weighting\" in the six different ranges of
     rapidity, for each mass.
     It creates different \".txt\" files with the results.
+
+    :param rdf0: RDataframe to compute Afb
+    :type rdf0: RDataFrame, required
+    :param pt_lim: range limits of pt
+    :type pt_lim: tuple, required
+
     """
 
     logger.info(" Starting the calculation of Afb...")
@@ -480,9 +482,17 @@ def afb(rdf0, pt_lim):
 
 
 def afb_plot(infile, pt_lim):
-    """ Plot the values of Afb obtain with the function \"afb\".
+    """
+    Plot the values of Afb obtain with the function \"afb\".
     It takes as input a txt file with the name of the txt files created from
-    \"afb\". This file is created in the script.
+    function \"afb\". This file has to be created before using this method.
+
+    :param infile: txt file with the list of files you want to reproduce Afb
+    results
+    :type infile: txt file, required
+    :param pt_lim: range limits of pt
+    :type pt_lim: tuple, required
+
     """
 
     with open(infile) as ft:
