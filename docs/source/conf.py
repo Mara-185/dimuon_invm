@@ -17,11 +17,12 @@ sys.path.insert(0, package_root)
 sys.path.insert(0, os.path.join(package_root, package_name))
 
 package_name2 = 'utils'
-package_root2 = os.path.abspath('../../Z_asymmetry/')
+package_root2 = os.path.abspath('../../Utils/')
 sys.path.insert(0, package_root2)
 sys.path.insert(0, os.path.join(package_root2, package_name2))
 
 package_name3 = 'Z_asymmetry'
+package_root3 = os.path.abspath('../../Z_asymmetry/')
 sys.path.insert(0, os.path.join(package_root2, package_name3))
 
 package_name4 = 'feynman_Z'
