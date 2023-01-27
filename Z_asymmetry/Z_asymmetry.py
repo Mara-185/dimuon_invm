@@ -483,7 +483,6 @@ def afb(rdf0, pt_lim):
 
 def afb_plot(infile, pt_lim):
     """
-    
     Plot the values of Afb obtain with the function \"afb\".
     It takes as input a txt file with the name of the txt files created by
     function \"afb\". This file has to be created before using this method.
