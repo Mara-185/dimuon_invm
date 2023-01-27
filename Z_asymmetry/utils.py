@@ -7,7 +7,15 @@ import ast
 logger = logging.getLogger(__name__)
 
 def set_logger(name, log_level):
-    """Create a new logger."""
+    """
+    Create a new logger.
+
+    :param name: name of the logger
+    :type name: string, required
+    :param log_level: level to set the logger
+    :type log_level: e.g. "logging.DEBUG", required
+
+    """
 
     # Create logger and set its level
     logger = logging.getLogger(f"{name}")
@@ -21,7 +29,15 @@ def set_logger(name, log_level):
     return logger
 
 def write_fitresults(results, filename):
-    """Function used to save results from RooFit fit in a txt file."""
+    """
+    Function used to save results from RooFit fit in a txt file.
+
+    :param results: results from a fit in RooFit
+    :type results: RooFitResult, required
+    :param filename: name of the txt output file
+    :type filename: string, required
+    
+    """
 
     text = ROOT.std.ofstream(filename)
     results.printMultiline(text, 1111, True)
