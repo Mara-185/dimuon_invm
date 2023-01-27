@@ -1,7 +1,0 @@
-digraph {
-	3 [label="Selection of muons with opposite charge", style="filled", fillcolor="#c4cfd4", shape="diamond"];
-	2 [label="Selection of two muons", style="filled", fillcolor="#c4cfd4", shape="diamond"];
-	0 [label="Events", style="filled", fillcolor="#e8f8fc", shape="oval"];
-	2 -> 3;
-	0 -> 2;
-}

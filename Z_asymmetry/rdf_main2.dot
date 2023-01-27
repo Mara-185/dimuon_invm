@@ -1,9 +1,4 @@
 digraph {
-	20 [label="Snapshot", style="filled", fillcolor="#baf1e5", shape="box"];
-	21 [label="Define
-w_n", style="filled", fillcolor="#60aef3", shape="oval"];
-	22 [label="Define
-w_d", style="filled", fillcolor="#60aef3", shape="oval"];
 	13 [label="Cut on Z resonance", style="filled", fillcolor="#c4cfd4", shape="diamond"];
 	14 [label="Define
 Dimuon_y", style="filled", fillcolor="#60aef3", shape="oval"];
@@ -36,9 +31,6 @@ Mu_pt", style="filled", fillcolor="#60aef3", shape="oval"];
 mask", style="filled", fillcolor="#60aef3", shape="oval"];
 	2 [label="Selection on events with at least two muons", style="filled", fillcolor="#c4cfd4", shape="diamond"];
 	0 [label="Events", style="filled", fillcolor="#e8f8fc", shape="oval"];
-	21 -> 20;
-	22 -> 21;
-	13 -> 22;
 	14 -> 13;
 	15 -> 14;
 	16 -> 15;

@@ -10,8 +10,13 @@ import sys
 root_utils = os.path.abspath('../dimuon_invm')
 sys.path.insert(0, root_utils)
 #sys.path.insert(0, os.path.join(root_utils, "utils"))
-
 import utils
+
+#Import shared library to test
+#ROOT.gInterpreter.ProcessLine('#include "tools.h"')
+ROOT.gSystem.Load('../Z_asymmetry/tools_cpp.so')
+
+
 
 # Con A0 calcolato
 # 0.05956152081489563
@@ -21,9 +26,6 @@ import utils
 # 0.05996
 # 0.154978
 
-#Import shared library to test
-    #?????#ROOT.gInterpreter.ProcessLine('#include "tools.h"')
-ROOT.gSystem.Load('../Z_asymmetry/tools_cpp.so')
 
 def create_example():
     """Create a known example to test the functions."""
