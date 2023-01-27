@@ -25,11 +25,16 @@ In the analysis the following version have been used:
 import ROOT
 import logging
 import os
-import utils
 import argparse
 import time
+import sys
 from pathlib import Path
 
+# Add my modules to the path
+root_utils = os.path.abspath('../Utils')
+sys.path.insert(0, root_utils)
+#sys.path.insert(0, os.path.join(root_utils, "utils"))
+import utils
 
 #logger = logging.getLogger(__name__)
 
@@ -597,7 +602,7 @@ if __name__ == "__main__":
 
     # Load the shared library "tools.cpp" which contains some functions to
     # calculate the useful quantities for the analysis.
-    ROOT.gInterpreter.ProcessLine('#include "tools.h"')
+    #ROOT.gInterpreter.ProcessLine('#include "tools.h"')
     ROOT.gSystem.Load('./tools_cpp.so')
 
     # Start the the timer
@@ -727,23 +732,23 @@ if __name__ == "__main__":
     for i in range(0, len(utils.RAPIDITY_BIN), 1):
         # Retrieve the values of eta range bins (y_inf, y_sup) from "utils.py"
         y_lim = utils.RAPIDITY_BIN[f"{i}"]
-        mass_eta(all_data,y_lim,pt_lim)
-        cos_eta(all_data,y_lim,pt_lim)
+        # mass_eta(all_data,y_lim,pt_lim)
+        # cos_eta(all_data,y_lim,pt_lim)
 
     # Compute AFB (Forward_Backward Asymmetry)
-    afb(all_data, pt_lim)
+    # afb(all_data, pt_lim)
 
     # Plot AFB results
     os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Z analysis')))
 
     # Create a txt with a list of the files from which takes values.
-    pathlist = Path("").glob(f"*_{pt_lim}dimuon_w.txt")
-    with open(f"Afblist_{pt_lim}.txt", "w+") as outf:
-        for path in pathlist:
-            print(path, file=outf)
-
-    logger.info(" Plotting Afb results...")
-    afb_plot(f"Afblist_{pt_lim}.txt", pt_lim)
+    # pathlist = Path("").glob(f"*_{pt_lim}dimuon_w.txt")
+    # with open(f"Afblist_{pt_lim}.txt", "w+") as outf:
+    #     for path in pathlist:
+    #         print(path, file=outf)
+    #
+    # logger.info(" Plotting Afb results...")
+    # afb_plot(f"Afblist_{pt_lim}.txt", pt_lim)
 
     os.chdir(os.path.dirname(os. getcwd()))
 

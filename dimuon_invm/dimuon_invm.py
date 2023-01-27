@@ -1,14 +1,3 @@
-import ROOT
-import argparse
-import logging
-import os
-import math
-import sys
-import glob
-import numpy as np
-import utils
-from pathlib import Path
-
 """
 The script takes as argument:
 
@@ -48,198 +37,122 @@ In the analysis the following version have been used:
 
 """
 
+import ROOT
+import argparse
+import logging
+import os
+import math
+import sys
+import glob
+import time
+import numpy as np
+from pathlib import Path
+
+# Add my modules to the path
+root_utils = os.path.abspath('../Utils')
+sys.path.insert(0, root_utils)
+#sys.path.insert(0, os.path.join(root_utils, "utils"))
+import utils
+
 # def main(infile, particle="all"):
 
 # Creating the logger and setting its level
-logger = utils.set_logger("Analysis", logging.DEBUG)
+#logger = utils.set_logger("Analysis", logging.DEBUG)
 
-def leptons_analysis(infile):
+def leptons_analysis(url):
     """
-    It takes in input a nano-AOD data file and returns two root files, named:
-    "dimuon.root" and "dielectron.root" both with four columns, each one related
-    to different quantity, for example:
+    It takes in input a nano-AOD data file and returns a root files, named:
+    "dimuon.root" with four useful columns for further analysis:
     ["Dimuon_mass", "Dimuon_pt", "Dimuon_eta", "Dimuon_phi"].
-    It returns the data cached in memory, in order to speed up further analysis.
+    It returns the data cached in memory.
+
+    :param url: url of the root file to upload from the web.
+    :type url: url of root file, required.
 
     """
-
-    # Enable parallel analysis
-    nthreads = 8
-    ROOT.ROOT.EnableImplicitMT(nthreads)
 
     logging.info("Start the analysis...")
 
     # Create an RDataFrame of useful data from the root file.
-    root_file = ROOT.TFile.Open(infile, "READ")
+    root_file = ROOT.TFile.Open(url, "READ")
     tree_name = root_file.GetListOfKeys().At(0).GetName()
     rdf = ROOT.RDataFrame(tree_name, root_file)
     logger.debug("The RDataFrame have been created.")
 
     # Filter on two muons and two electrons with opposite charge
-    rdf_mu = rdf.Filter("nMuon==2","Selection of two muons").\
-                 Filter("Muon_charge[0]!=Muon_charge[1]",\
-                        "Selection of muons with opposite charge")
-    logger.info("The cut on two muons with opposite charge is done.")
-
-    rdf_e = rdf.Filter("nElectron==2","Selection of two electrons").\
-                Filter("Electron_charge[0]!=Electron_charge[1]",\
-                       "Selection of electrons with opposite charge")
-    logger.info("The cut on two electrons with opposite charge is done.")
+    rdf_mu =rdf.Filter("nMuon==2","Selection of two muons").\
+                Filter("Muon_charge[0]!=Muon_charge[1]",\
+                        "Selection of muons with opposite charge").\
+                Define("Dimuon_mass", \
+                    "dilepton_vec(Muon_pt[0], Muon_eta[0], Muon_phi[0], Muon_mass[0], \
+                     Muon_pt[1], Muon_eta[1], Muon_phi[1], Muon_mass[1])[3]").\
+                Define("Dimuon_pt",\
+                    "dilepton_vec(Muon_pt[0], Muon_eta[0], Muon_phi[0], Muon_mass[0], \
+                     Muon_pt[1], Muon_eta[1], Muon_phi[1], Muon_mass[1])[0]").\
+                Define("Dimuon_eta", \
+                    "dilepton_vec(Muon_pt[0], Muon_eta[0], Muon_phi[0], Muon_mass[0], \
+                     Muon_pt[1], Muon_eta[1], Muon_phi[1], Muon_mass[1])[1]").\
+                Define("Dimuon_phi",\
+                    "dilepton_vec(Muon_pt[0], Muon_eta[0], Muon_phi[0], Muon_mass[0], \
+                     Muon_pt[1], Muon_eta[1], Muon_phi[1], Muon_mass[1])[2]").\
+                Define("Dimuon_cos",\
+                    "cos_rapidity(Muon_pt[0], Muon_eta[0], Muon_phi[0], Muon_mass[0], \
+                     Muon_pt[1], Muon_eta[1], Muon_phi[1], Muon_mass[1])[0]").\
+                Define("Dimuon_y",\
+                    "cos_rapidity(Muon_pt[0], Muon_eta[0], Muon_phi[0], Muon_mass[0], \
+                     Muon_pt[1], Muon_eta[1], Muon_phi[1], Muon_mass[1])[1]")
 
     # Print cutflows
     logger.info("CutFlow muons:")
     rdf_mu.Report().Print()
 
-    logger.info("CutFlow electrons:")
-    rdf_e.Report().Print()
-
-    # Save Node Graph
-    ROOT.RDF.SaveGraph(rdf, "rdf(first).dot")
-    del rdf
-
-
-    # By "Jitting", two functions are created:
-    #   - "dilepton_vec" takes in input pt (transverse momentum), eta
-    #   (pseudorapidity), phi (azimuthal angle), and mass of the chosen two
-    #   particles and it returns a four-vector with the dilepton invariant mass,
-    #   pt, phi and eta.
-    #   -"cos_rapidity" takes in input pt, eta, phi and mass of the chosen two
-    #   particles and it returns a vector with the values of rapidity and cosine
-    #   of the angle of the negative leptons in the Collins-Soper frame of the
-    #   dilepton system.
-    ROOT.gInterpreter.Declare("""
-    ROOT::VecOps::RVec<double> dilepton_vec(float pt0, float eta0, float phi0,
-        float mass0, float pt1, float eta1, float phi1, float mass1)
-    {
-    	ROOT::Math::PtEtaPhiMVector p0, p1;
-    	p0.SetCoordinates(pt0, eta0, phi0, mass0);
-    	p1.SetCoordinates(pt1, eta1, phi1, mass1);
-    	ROOT::VecOps::RVec<double> P{(p1+p0).Pt(), (p1+p0).Eta(), (p1+p0).Phi(),
-                (p1+p0).M()};
-    	return P;
-    }
-
-
-    ROOT::VecOps::RVec<float> cos_rapidity(float pt0, float eta0, float phi0,
-            float mass0, float pt1, float eta1, float phi1, float mass1)
-    {
-        float pz0, pz1, E0, E1, P0_1, P0_2, P1_1, P1_2, cos, numer, denom, mll,
-            ptt, pzll, y;
-        ROOT::Math::PtEtaPhiMVector p0, p1;
-  		p0.SetCoordinates(pt0, eta0, phi0, mass0);
-  		p1.SetCoordinates(pt1, eta1, phi1, mass1);
-
-        pz0 = pt0*sinh(eta0);
-        E0 = sqrt(pow(pz0,2)+pow(pt0,2)+pow(mass0,2));
-        pz1 = pt1*sinh(eta1);
-        E1 = sqrt(pow(pz1,2)+pow(pt1,2)+pow(mass1,2));
-        P0_1 = (E0+pz0)/sqrt(2);
-        P0_2 = (E0-pz0)/sqrt(2);
-        P1_1 = (E1+pz1)/sqrt(2);
-        P1_2 = (E1-pz1)/sqrt(2);
-        numer = 2*((P0_1*P1_2) - (P0_2*P1_1));
-        mll = pow((p1+p0).M(),2);
-        ptt = pow((p1+p0).Pt(),2);
-        denom = sqrt(mll*(mll+ptt));
-        pzll = pz0+pz1;
-
-        cos = (numer/denom)*(pzll/abs(pzll));
-        y = (0.5)*log(((E0+E1)+(pz0+pz1))/((E0+E1)-(pz0+pz1)));
-
-        ROOT::VecOps::RVec<float> A{cos,y};
-  		return A;
-  	}
-    """)
-    #cos =( ( 2*((P0_1*P1_2) - (P0_2*P1_1)) ) * (pzll) ) / ( (sqrt(mll*(mll+ptt))) * (abs(pzll)) );
-
-    logger.debug("The two c++ functions have been defined.")
-
-    # Define new columns in the RDataFrame with the variables needed for the analysis
-    rdf_dimu = rdf_mu.\
-        Define("Dimuon_mass", \
-            "dilepton_vec(Muon_pt[0], Muon_eta[0], Muon_phi[0], Muon_mass[0], \
-             Muon_pt[1], Muon_eta[1], Muon_phi[1], Muon_mass[1])[3]").\
-        Define("Dimuon_pt",\
-            "dilepton_vec(Muon_pt[0], Muon_eta[0], Muon_phi[0], Muon_mass[0], \
-             Muon_pt[1], Muon_eta[1], Muon_phi[1], Muon_mass[1])[0]").\
-        Define("Dimuon_eta", \
-            "dilepton_vec(Muon_pt[0], Muon_eta[0], Muon_phi[0], Muon_mass[0], \
-             Muon_pt[1], Muon_eta[1], Muon_phi[1], Muon_mass[1])[1]").\
-        Define("Dimuon_phi",\
-            "dilepton_vec(Muon_pt[0], Muon_eta[0], Muon_phi[0], Muon_mass[0], \
-             Muon_pt[1], Muon_eta[1], Muon_phi[1], Muon_mass[1])[2]").\
-        Define("Dimuon_cos",\
-            "cos_rapidity(Muon_pt[0], Muon_eta[0], Muon_phi[0], Muon_mass[0], \
-             Muon_pt[1], Muon_eta[1], Muon_phi[1], Muon_mass[1])[0]").\
-        Define("Dimuon_y",\
-            "cos_rapidity(Muon_pt[0], Muon_eta[0], Muon_phi[0], Muon_mass[0], \
-             Muon_pt[1], Muon_eta[1], Muon_phi[1], Muon_mass[1])[1]")
-
     # Save Node Graph
     ROOT.RDF.SaveGraph(rdf_mu, "rdf_mu.dot")
-    del rdf_mu
-
-    rdf_diel = rdf_e.\
-        Define("Dielectron_mass", "dilepton_vec(Electron_pt[0], Electron_eta[0],\
-         Electron_phi[0], Electron_mass[0], Electron_pt[1], Electron_eta[1], \
-         Electron_phi[1], Electron_mass[1])[3]").\
-        Define("Dielectron_pt", "dilepton_vec(Electron_pt[0], Electron_eta[0],\
-         Electron_phi[0], Electron_mass[0], Electron_pt[1], Electron_eta[1], \
-         Electron_phi[1], Electron_mass[1])[0]").\
-        Define("Dielectron_eta", "dilepton_vec(Electron_pt[0], Electron_eta[0],\
-         Electron_phi[0], Electron_mass[0], Electron_pt[1], Electron_eta[1], \
-         Electron_phi[1], Electron_mass[1])[1]").\
-        Define("Dielectron_phi", "dilepton_vec(Electron_pt[0], Electron_eta[0],\
-         Electron_phi[0], Electron_mass[0], Electron_pt[1], Electron_eta[1], \
-         Electron_phi[1], Electron_mass[1])[2]").\
-        Define("Dielectron_cos", "cos_rapidity(Electron_pt[0], Electron_eta[0],\
-         Electron_phi[0], Electron_mass[0], Electron_pt[1], Electron_eta[1], \
-         Electron_phi[1], Electron_mass[1])[0]").\
-        Define("Dielectron_y", "cos_rapidity(Electron_pt[0], Electron_eta[0], \
-        Electron_phi[0], Electron_mass[0], Electron_pt[1], Electron_eta[1], \
-        Electron_phi[1], Electron_mass[1])[1]")
-    logger.debug("The new columns of dimuons and dieletrons are defined.")
-
-    # Save Node Graph
-    ROOT.RDF.SaveGraph(rdf_e, "rdf_e.dot")
-    del rdf_e
 
     # Lists with the names of the new columns are created in order to make a
     # snapshot of them
     branchlist_mu = ["Dimuon_mass", "Dimuon_pt", "Dimuon_eta", "Dimuon_phi", \
         "Dimuon_cos", "Dimuon_y"]
-    branchlist_e = [ "Dielectron_mass", "Dielectron_pt", "Dielectron_eta", \
-        "Dielectron_phi", "Dielectron_cos", "Dielectron_y"]
 
     # Two snapshots are done to collect the useful physiscal quantity of the
-    # dimuons and dielectrons in a single root file.
+    # dimuons in a single root file.
     # Data are also cached to speed up the analysis.
     logger.debug("Starting snapshots...")
-    dimu_cached = rdf_dimu.Snapshot("dimuon", "dimuon.root", branchlist_mu).\
+    dimu_cached = rdf_mu.Snapshot("dimuon", "dimuon.root", branchlist_mu).\
         Cache()
-    diel_cached = rdf_diel.Snapshot("dielectron", "dielectron.root",
-        branchlist_e).Cache()
     logger.info("The snapshots are done and data are cached.")
 
     # Close the file and return data cached of dimuons and dielectrons.
     root_file.Close()
-    return dimu_cached, diel_cached
+    return dimu_cached
 
 
-def mumu_spectrum(infile, mu_cached=None):
+def mumu_spectrum(infile, mu_cached=None, bump=False):
     """
-    It takes in input the root data file or the data cached obtained by the
-    function "leptons_analysis" named "dimuon.root" and plot the histogram of
-    the dimuons invariant mass.
+    It takes in input the root data file or the data cached, obtained by the
+    function "leptons_analysis" and plot the histogram of the dimuons invariant
+    mass.
+
+    :param infile: name of data root file
+    :type infile: string, required
+    :param mu_cached: data cached in memory
+    :type mu_cached: RDataFrame, NOT REQUIRED, default=False
+    :param bump: False to plot without the bump
+    :type bump: boolean, NOT REQUIRED
+
     """
 
     #Histogram of dimuon mass
     if mu_cached == None:
         t_name = infile.replace(".root", "")
         rdf = ROOT.RDataFrame(t_name,infile)
+        if bump==False:
+            rdf = rdf.Filter("Dimuon_pt>20")
         h = rdf.Histo1D(ROOT.RDF.TH1DModel("Dimuon mass", "Dimuon mass",
             50000, 0.3, 200), "Dimuon_mass")
     else:
+        if bump==False:
+            mu_cached = mu_cached.Filter("Dimuon_pt>20")
         h = mu_cached.Histo1D(ROOT.RDF.TH1DModel("Dimuon mass", "Dimuon mass",
             50000, 0.3, 200), "Dimuon_mass")
 
@@ -269,63 +182,14 @@ def mumu_spectrum(infile, mu_cached=None):
 
     # Save results in pdf and png in the folder "Spectra"
     os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Spectra')))
-    c.SaveAs("dimuon_spectrum.pdf")
-    c.SaveAs("dimuon_spectrum.png")
+    if bump==False:
+        c.SaveAs("dimuon_spectrum.png")
+    else:
+        c.SaveAs("dimuon_spectrum_wo_bump.png")
+
+
     os.chdir(os.path.dirname(os. getcwd()))
     logger.info("The files \"dimuon_spectrum.***\"(pdf, png) have been created.")
-
-
-def mumu_spectrum_bump(infile, mu_cached=None):
-    """
-    It takes in input the root data file or the data cached obtained by the
-    function "leptons_analysis" named "dimuon.root" and plot the histogram of
-    the dimuons invariant mass with a cut for events which have pt>20 GeV.
-    """
-
-    if mu_cached == None:
-        t_name = infile.replace(".root", "")
-        rdf = ROOT.RDataFrame(t_name,infile)
-        rdf_m = rdf.Filter("Dimuon_pt>20")
-        h = rdf_m.Histo1D(ROOT.RDF.TH1DModel("Dimuon mass", "Dimuon mass",
-            50000, 0.3, 200), "Dimuon_mass")
-        del rdf
-    else:
-        rdf_m = mu_c.Filter("Dimuon_pt>20")
-        h = rdf_m.Histo1D(ROOT.RDF.TH1DModel("Dimuon mass", "Dimuon mass",
-            50000, 0.3, 200), "Dimuon_mass")
-
-    # Styling
-    ROOT.gStyle.SetOptStat("e")
-    c = ROOT.TCanvas("dimuon spectrum", "#mu^{+}#mu^{-} invariant mass")
-    c.SetLogx()
-    c.SetLogy()
-    h.SetTitle("Dimuon mass without bump")
-    h.GetXaxis().SetTitle("m_{#mu^{+}#mu^{-}} [GeV]")
-    h.GetXaxis().SetTitleSize(0.04)
-    h.GetXaxis().CenterTitle()
-    h.GetYaxis().SetTitle("Events")
-    h.GetYaxis().SetTitleSize(0.04)
-    h.GetYaxis().CenterTitle()
-    h.Draw()
-
-    # Labels
-    label = ROOT.TLatex()
-    label.SetNDC(True)
-    label.DrawLatex(0.165, 0.720, "#eta")
-    label.DrawLatex(0.190, 0.772, "#rho,#omega")
-    label.DrawLatex(0.245, 0.775, "#phi")
-    label.DrawLatex(0.400, 0.850, "J/#psi")
-    label.DrawLatex(0.410, 0.700, "#psi'")
-    label.DrawLatex(0.485, 0.700, "Y(1, 2, 3S)")
-    label.DrawLatex(0.795, 0.680, "Z")
-    label.DrawLatex(0.7, 0.85, "p_{t}> 20 GeV")
-
-    # Save results in pdf and png in the folder "Spectra"
-    os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Spectra')))
-    c.SaveAs("dimuon_spectrum_bump.pdf")
-    c.SaveAs("dimuon_spectrum_bump.png")
-    os.chdir(os.path.dirname(os. getcwd()))
-    logger.info("The files \"dimuon_spectrum_bump.***\"(pdf, png) have been created.")
 
 
 def mumu_eta(infile, mu_cached=None):
@@ -377,10 +241,18 @@ def resonance_fit(infile, particle, mu_cached=None):
     \"Z\", \"all\."
     It retrieves a plot with the fit and a txt file with fit results, for
     each resonance.
+    and a workspace
+    ???????????????????????????????????????????????????????
 
-     and a workspace
-    ????????????????????????????????????????????????????????""
+    :param infile: Data file to analyze
+    :type infile: root file, required
+    :param particle: name of the particle to fit
+    :type particle: string, required
+    :param mu_cached: data cached in memory
+    :type mu_cached: RDataFrame, NOT REQUIRED, default=False
+
     """
+    start_fit = time.time()
 
     # An auxiliary TTree from the root data file is created.
     if mu_cached == None:
@@ -565,11 +437,11 @@ def resonance_fit(infile, particle, mu_cached=None):
 
             # Print fit results
             print(f"The mass and the width of the particles {name} obtained from"
-            f"the fit are: \
-            \nm(Y1S) = {mean1.getValV()}; width(Y1S) = {sigma1.getValV()}\
-            \nm(Y2S) = {mean2.getValV()}; width(Y2S) = {sigma2.getValV()}\
-            \nm(Y3S) = {mean3.getValV()}; width(Y3S) = {sigma3.getValV()}\
-            \nchi2\ndf = {chi}\n")
+            f"the fit are:\n"
+            f"m(Y1S) = {mean1.getValV()}; width(Y1S) = {sigma1.getValV()}\n"
+            f"m(Y2S) = {mean2.getValV()}; width(Y2S) = {sigma2.getValV()}\n"
+            f"m(Y3S) = {mean3.getValV()}; width(Y3S) = {sigma3.getValV()}\n"
+            f"chi2\\ndf = {chi}\n")
         else:
             tot.plotOn(mframe, ROOT.RooFit.Name(f"{sig}"),
                 ROOT.RooFit.Components(sig),
@@ -589,9 +461,9 @@ def resonance_fit(infile, particle, mu_cached=None):
 
             # Print fit results
             print(f"The mass and the width of the particle {particle} obtained "
-                f"from the fit are: \
-                \nm = {mean.getValV()}; width = {sigma.getValV()}\
-                \nchi2\ndf = {chi}\n")
+                f"from the fit are: \n"
+                f"m = {mean.getValV()}; width = {sigma.getValV()}\n"
+                f"chi2\\ndf = {chi}\n")
 
         leg.AddEntry(f"{bkg}",f"{bkg}", "l")
         leg.AddEntry("Model","Total", "l")
@@ -600,13 +472,14 @@ def resonance_fit(infile, particle, mu_cached=None):
 
         #Save results in the directory "Fit"
         os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Fit')))
-        c.SaveAs(f"{particle}_fit.pdf")
+        #c.SaveAs(f"{particle}_fit.pdf")
         c.SaveAs(f"{particle}_fit.png")
         utils.write_fitresults(results, f"res_{particle}.txt")
 
         # Return in main directory
         os.chdir(os.path.dirname(os. getcwd()))
         f.Close()
+        logger.info(f"Elapsed time to fit {particle}: {time.time()-start_fit}")
 
 
 def resonance_prop(infile, mu_cached=None, particle="all"):
@@ -787,16 +660,20 @@ if __name__ == "__main__":
     ROOT.gROOT.SetStyle("My Style")
     myStyle.cd()
 
+    # Enable parallel analysis
+    nthreads = 8
+    ROOT.ROOT.EnableImplicitMT(nthreads)
+
     # Start the the timer
-    timer = ROOT.TStopwatch()
-    timer.Start()
+    start = time.time()
+    start_cpu = time.process_time()
 
     # Creating the parser
     parser = argparse.ArgumentParser(description =
         "Processing the root file of data.")
     parser.add_argument("-f", "--file",required=True, type=str,
         help="The path of the nanoAOD file to analyze.")
-    parser.add_argument("-p", "--particle",required=False, type=str,
+    parser.add_argument("-p", "--particle",required=False, type=str, nargs="+",
         help="The name of the particle to analyze. It is necessary if you want \
             to see resonances' fit and properties. Possible arguments are:\
             \"eta\", \"rho\",\"omega\", \"phi\", \"J-psi\", \"psi'\", \"Y\", \
@@ -808,6 +685,11 @@ if __name__ == "__main__":
 
     logger.info("Starting the analysis of the root file nanoAOD...")
 
+    # Load the shared library "tools.cpp" which contains some functions to
+    # calculate the useful quantities for the analysis.
+    #ROOT.gInterpreter.ProcessLine('#include "tools.h"')
+    ROOT.gSystem.Load('../Z_asymmetry/tools_cpp.so')
+
     # LEPTONS ANALYSIS
 
     # If "leptons_analysis" is not run (it already has been done), dimu_cached
@@ -815,80 +697,79 @@ if __name__ == "__main__":
     # take data directly from tha data saved by the snapshot.
     # But "leptons_analysis" must be run at least one to collect data.
     dimu_cached = None
-    diel_cached = None
     outfile_m = "dimuon.root"
-    outfile_el = "dielectron.root"
-    #dimu_cached, diel_cached = leptons_analysis(f"{args.file}")
+    #dimu_cached= leptons_analysis(f"{args.file}")
 
     # DIMUON MASS SPECTRUM
     os.makedirs("Spectra", exist_ok=True)
     logger.debug("The new directory \"Spectra\" is created")
-    #mumu_spectrum(outfile_m, dimu_cached)
+    mumu_spectrum(outfile_m, dimu_cached)
 
-    # DIMUON MASS SPECTRUM WITHOUT BUMP
-    #mumu_spectrum_bump(outfile_m, dimu_cached)
-
-    # DIMUON ETA DISTRIBUTION
-    #mumu_eta(outfile_m, dimu_cached)
+    # # DIMUON MASS SPECTRUM WITHOUT BUMP
+    # #mumu_spectrum_bump(outfile_m, dimu_cached)
+    #
+    # # DIMUON ETA DISTRIBUTION
+    # #mumu_eta(outfile_m, dimu_cached)
 
     # RESONANCES' FIT
     os.makedirs("Fit", exist_ok=True)
     logger.debug("The new directory \"Fit\" is created")
-    #resonance_fit(outfile_m, f"{args.particle}")
-
-    # PROPERTIES
-    os.makedirs("Properties", exist_ok=True)
-    logger.debug("The new directory \"Properties\" is created")
-    # resonance_prop(outfile_m, dimu_cached, f"{args.particle}")
-
-
-    # Z ANALYSIS
-    os.makedirs("Z analysis", exist_ok=True)
-    logger.debug("The new directory \"Z analysis\" is created")
-
-    # Plot Z resonance and cos(theta*)in different rapidity ranges for both
-    # dimuons and dielectrons data
-    data = ["dimuon", "dielectron"]
-    cached = [dimu_cached, diel_cached]
-    for i in range(0, len(utils.RAPIDITY_BIN), 1):
-
-        # Retrieve the values of eta range bins (y_inf, y_sup)
-        y_lim = utils.RAPIDITY_BIN[f"{i}"]
-
-        # Cut on pt to reduce background (pt_inf, pt_sup)
-        pt_lim = (10,100)
-        pt_lim2 = (80,100)
-
-        bin = 40 #binning
-        for dilepton, cache in zip(data, cached):
-            #Z_asymmetry.mass_vs_eta(f"{dilepton}.root",y_lim,pt_lim,bin,cache)
-            #Z_asymmetry.cos_vs_eta(f"{dilepton}.root",y_lim,pt_lim,bin,cache)
-            pass
-
-    # AFB (Forward_Backward Asymmetry)
-    #Z_asymmetry.weight("dimuon.root", dimu_cached)
-    Z_asymmetry.afb("dimuon_w.root", pt_lim)
-
-    # Plot AFB for different cut in pt
-
-    os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Z analysis')))
-
-    # Create a txt with a list of the files from which takes values.
-    pt_plot = [f"{pt_lim}", f"{pt_lim2}"]
-    print(pt_plot[0])
-    for p in pt_plot:
-        pathlist = Path("").glob(f"*_{p}dimuon_w.txt")
-        with open(f"Afblist_{p}.txt", "w+") as outf:
-            for path in pathlist:
-                print(path, file=outf)
-
-    # Dimuon Afb plots
-    for p in pt_plot:
-        Z_asymmetry.afb_plot(f"Afblist_{p}.txt")
-    os.chdir(os.path.dirname(os. getcwd()))
+    for p in args.particle:
+        #resonance_fit(outfile_m, f"{args.particle}")
+        resonance_fit(outfile_m, p)
+    #
+    # # PROPERTIES
+    # os.makedirs("Properties", exist_ok=True)
+    # logger.debug("The new directory \"Properties\" is created")
+    # # resonance_prop(outfile_m, dimu_cached, f"{args.particle}")
+    #
+    #
+    # # Z ANALYSIS
+    # os.makedirs("Z analysis", exist_ok=True)
+    # logger.debug("The new directory \"Z analysis\" is created")
+    #
+    # # Plot Z resonance and cos(theta*)in different rapidity ranges for both
+    # # dimuons and dielectrons data
+    # data = ["dimuon", "dielectron"]
+    # cached = [dimu_cached, diel_cached]
+    # for i in range(0, len(utils.RAPIDITY_BIN), 1):
+    #
+    #     # Retrieve the values of eta range bins (y_inf, y_sup)
+    #     y_lim = utils.RAPIDITY_BIN[f"{i}"]
+    #
+    #     # Cut on pt to reduce background (pt_inf, pt_sup)
+    #     pt_lim = (10,100)
+    #     pt_lim2 = (80,100)
+    #
+    #     bin = 40 #binning
+    #     for dilepton, cache in zip(data, cached):
+    #         #Z_asymmetry.mass_vs_eta(f"{dilepton}.root",y_lim,pt_lim,bin,cache)
+    #         #Z_asymmetry.cos_vs_eta(f"{dilepton}.root",y_lim,pt_lim,bin,cache)
+    #         pass
+    #
+    # # AFB (Forward_Backward Asymmetry)
+    # #Z_asymmetry.weight("dimuon.root", dimu_cached)
+    # Z_asymmetry.afb("dimuon_w.root", pt_lim)
+    #
+    # # Plot AFB for different cut in pt
+    #
+    # os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Z analysis')))
+    #
+    # # Create a txt with a list of the files from which takes values.
+    # pt_plot = [f"{pt_lim}", f"{pt_lim2}"]
+    # print(pt_plot[0])
+    # for p in pt_plot:
+    #     pathlist = Path("").glob(f"*_{p}dimuon_w.txt")
+    #     with open(f"Afblist_{p}.txt", "w+") as outf:
+    #         for path in pathlist:
+    #             print(path, file=outf)
+    #
+    # # Dimuon Afb plots
+    # for p in pt_plot:
+    #     Z_asymmetry.afb_plot(f"Afblist_{p}.txt")
+    # os.chdir(os.path.dirname(os. getcwd()))
 
 
     # Elapsed time
-    timer.Stop()
-    logger.info(f"Elapsed time from the beginning is: {timer.RealTime()}(real time) seconds")
-    logger.info(f"Elapsed time from the beginning is: {timer.CpuTime()}(cpu time) seconds")
+    logger.info(f" Elapsed time from the beginning is: {time.time()-start}(real time) seconds")
+    logger.info(f" Elapsed time from the beginning is: {time.process_time()-start_cpu}(cpu time) seconds")

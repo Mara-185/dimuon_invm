@@ -7,14 +7,14 @@ import os
 import sys
 
 # Add my modules to the path
-root_utils = os.path.abspath('../dimuon_invm')
+root_utils = os.path.abspath('../Utils')
 sys.path.insert(0, root_utils)
 #sys.path.insert(0, os.path.join(root_utils, "utils"))
 import utils
 
 #Import shared library to test
 #ROOT.gInterpreter.ProcessLine('#include "tools.h"')
-ROOT.gSystem.Load('../Z_asymmetry/tools_cpp.so')
+ROOT.gSystem.Load('../Utils/tools_cpp.so')
 
 
 
