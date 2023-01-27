@@ -2,7 +2,6 @@
 
 import logging
 import ROOT
-import ast
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +35,7 @@ def write_fitresults(results, filename):
     :type results: RooFitResult, required
     :param filename: name of the txt output file
     :type filename: string, required
-    
+
     """
 
     text = ROOT.std.ofstream(filename)

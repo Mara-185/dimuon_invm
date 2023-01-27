@@ -3,17 +3,15 @@ In this module a few functions are implemented in order to study the
 \"Forward-Backward asymmetry" for the Z boson decay.
 The analysis is done in six different rapidity ranges of equal size and
 twelve mass bins:
-
 - Mass bins : 60 < Mass < 120:
 [60, 70, 78, 84, 87, 89, 91, 93, 95, 98, 104, 112, 120];
 - Rapidity bins of equal size for \|rapidity\| < 2.4:
 [0, 0.4, 0.8, 1.2, 1.6, 2.0, 2.4]
 
 In the analysis the following version have been used:
-
 - Python v3.8
 - ROOT v6.24 ("source ~/root/bin/thisroot.sh" command needed before starting
-    the analysis to set the environment of ROOT)
+the analysis to set the environment of ROOT)
 
 """
 

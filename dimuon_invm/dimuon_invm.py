@@ -9,43 +9,38 @@ import numpy as np
 import utils
 from pathlib import Path
 
-
 """
 The script takes as argument:
-
 - the data file (URL) of dileptons (-f), for example: "root:
- //eospublic.cern.ch//eos/root-eos/cms_opendata_2012_nanoaod/Run2012B_DoubleMuParked.root";
+//eospublic.cern.ch//eos/root-eos/cms_opendata_2012_nanoaod/Run2012B_DoubleMuParked.root";
 - the string of the particle's name (-p) to analyze and fit, among those in
-  the dimuon spectrum, which are :
-  "eta", "rho","omega", "phi", "J-psi", "psi'", "Y", "Z".
-  Better put the string in quotes, because for example for the "psi'" the
-  " ' " character gives some troubles.
+the dimuon spectrum, which are :
+"eta", "rho","omega", "phi", "J-psi", "psi'", "Y", "Z".
+Better put the string in quotes, because for example for the "psi'" the
+" ' " character gives some troubles.
 
-  There are different functions for the main analysis, among which:
+There are different functions for the main analysis, among which:
+- "leptons_analysis" which selects the couple of muons and electrons which
+are interesting in order to create the dimuon mass spectrum and for
+further analysis;
+- "mumu_spectrum" which plot the dimuon mass spectrum.
+- "resonance_fit" solves every resonance and returns the plot with the fit
+and a txt with the fit results.
+- "resonance_prop" creates different plots of the main characteristics of
+the particle chosen in the spectrum;
 
-  - "leptons_analysis" which selects the couple of muons and electrons which
-    are interesting in order to create the dimuon mass spectrum and for
-    further analysis;
-  - "mumu_spectrum" which plot the dimuon mass spectrum.
-  - "resonance_fit" solves every resonance and returns the plot with the fit
-    and a txt with the fit results.
-  - "resonance_prop" creates different plots of the main characteristics of
-    the particle chosen in the spectrum;
-
-  For the extimation of the weak mixing angle studying the angular properties
-  of the Z boson, it's necessary to import the module "Z_asymmetry.py":
-
-  - "weight" which calculates other useful variables for the analysis;
-  - "afb" which estimate, from the varibles obtained by the previous function,
-    the mean values of Afb (forward-backward asymmetry) in different bins
-    of mass and pseudorapidity (in total 6 bins of pseudorapidity and 12 bins
-    of mass).
+For the extimation of the weak mixing angle studying the angular properties
+of the Z boson, it's necessary to import the module "Z_asymmetry.py":
+- "weight" which calculates other useful variables for the analysis;
+- "afb" which estimate, from the varibles obtained by the previous function,
+the mean values of Afb (forward-backward asymmetry) in different bins
+of mass and pseudorapidity (in total 6 bins of pseudorapidity and 12 bins
+of mass).
 
 In the analysis the following version have been used:
-
 - Python v3.8
 - ROOT v6.24 ("source ~/root/bin/thisroot.sh" command needed before starting
-    the analysis to set the environment of ROOT)
+the analysis to set the environment of ROOT)
 
 """
 
@@ -371,15 +366,16 @@ def mumu_eta(infile, mu_cached=None):
 
 
 def resonance_fit(infile, particle, mu_cached=None):
-    """It takes in input the root data file obtained with "leptons_analysis"
-        and a string with the name of the resonance to fit. Possible arguments
-        are: \"eta\", \"rho\",\"omega\", \"phi\", \"J-psi\", \"psi'\", \"Y\",
-        \"Z\", \"all\."
-        It retrieves a plot with the fit and a txt file with fit results, for
-        each resonance.
+    """
+    It takes in input the root data file obtained with "leptons_analysis"
+    and a string with the name of the resonance to fit. Possible arguments
+    are: \"eta\", \"rho\",\"omega\", \"phi\", \"J-psi\", \"psi'\", \"Y\",
+    \"Z\", \"all\."
+    It retrieves a plot with the fit and a txt file with fit results, for
+    each resonance.
 
-         and a workspace
-        ????????????????????????????????????????????????????????""
+     and a workspace
+    ????????????????????????????????????????????????????????""
     """
 
     # An auxiliary TTree from the root data file is created.
@@ -610,15 +606,15 @@ def resonance_fit(infile, particle, mu_cached=None):
 
 
 def resonance_prop(infile, mu_cached=None, particle="all"):
-    """The function creates different plots of the main properties of the
+    """
+    The function creates different plots of the main properties of the
     resonances such as transverse momentum, pseudorapidity and azimuthal angle.
     It takes in input :
-
     - the root data file or the data cached obtained by the function "
-        leptons_analysis" named "dimuon.root" which contains pt, phi, eta and
-        the invariant mass of the dimuons;
+    leptons_analysis" named "dimuon.root" which contains pt, phi, eta and
+    the invariant mass of the dimuons;
     - a string with the name of the resonance; the default value is "all", in
-        this case plots of all resonances' properties are created.
+    this case plots of all resonances' properties are created.
 
     """
 
