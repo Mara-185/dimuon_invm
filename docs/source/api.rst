@@ -15,3 +15,8 @@ Z_asymmetry
 ---------------------------
 .. automodule:: Z_asymmetry
  :members:
+
+feynman_Z
+---------------------------
+.. automodule:: feynman_Z
+ :members:
