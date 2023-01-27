@@ -30,7 +30,7 @@ def retrieve_dataset(findex, start, stop):
     needed to analyze each file, its number of events and the name of the
     snapshot created in the "z_main" function.
 
-    :param findex : index of root files which make up the entire dataset
+    :param findex: index of root files which make up the entire dataset
     :type findex: string of txt file, required
     :param start: first index of the range of files to analyze
     :type start: int, required
@@ -487,8 +487,7 @@ def afb_plot(infile, pt_lim):
     It takes as input a txt file with the name of the txt files created by
     function \"afb\". This file has to be created before using this method.
 
-    :param infile: txt file with the list of files you want to reproduce Afb
-    results
+    :param infile: txt with the list of files you want to reproduce Afb results
     :type infile: txt file, required
     :param pt_lim: range limits of pt
     :type pt_lim: tuple, required
