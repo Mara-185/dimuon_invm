@@ -10,41 +10,42 @@ import utils
 from pathlib import Path
 
 
-"""The script takes as argument:
+"""
+The script takes as argument:
 
-    - the data file (URL) of dileptons (-f), for example: "root:
-     //eospublic.cern.ch//eos/root-eos/cms_opendata_2012_nanoaod/Run2012B_DoubleMuParked.root";
-    - the string of the particle's name (-p) to analyze and fit, among those in
-      the dimuon spectrum, which are :
-      "eta", "rho","omega", "phi", "J-psi", "psi'", "Y", "Z".
-      Better put the string in quotes, because for example for the "psi'" the
-      " ' " character gives some troubles.
+- the data file (URL) of dileptons (-f), for example: "root:
+ //eospublic.cern.ch//eos/root-eos/cms_opendata_2012_nanoaod/Run2012B_DoubleMuParked.root";
+- the string of the particle's name (-p) to analyze and fit, among those in
+  the dimuon spectrum, which are :
+  "eta", "rho","omega", "phi", "J-psi", "psi'", "Y", "Z".
+  Better put the string in quotes, because for example for the "psi'" the
+  " ' " character gives some troubles.
 
-      There are different functions for the main analysis, among which:
+  There are different functions for the main analysis, among which:
 
-      - "leptons_analysis" which selects the couple of muons and electrons which
-        are interesting in order to create the dimuon mass spectrum and for
-        further analysis;
-      - "mumu_spectrum" which plot the dimuon mass spectrum.
-      - "resonance_fit" solves every resonance and returns the plot with the fit
-        and a txt with the fit results.
-      - "resonance_prop" creates different plots of the main characteristics of
-        the particle chosen in the spectrum;
+  - "leptons_analysis" which selects the couple of muons and electrons which
+    are interesting in order to create the dimuon mass spectrum and for
+    further analysis;
+  - "mumu_spectrum" which plot the dimuon mass spectrum.
+  - "resonance_fit" solves every resonance and returns the plot with the fit
+    and a txt with the fit results.
+  - "resonance_prop" creates different plots of the main characteristics of
+    the particle chosen in the spectrum;
 
-      For the extimation of the weak mixing angle studying the angular properties
-      of the Z boson, it's necessary to import the module "Z_asymmetry.py":
+  For the extimation of the weak mixing angle studying the angular properties
+  of the Z boson, it's necessary to import the module "Z_asymmetry.py":
 
-      - "weight" which calculates other useful variables for the analysis;
-      - "afb" which estimate, from the varibles obtained by the previous function,
-        the mean values of Afb (forward-backward asymmetry) in different bins
-        of mass and pseudorapidity (in total 6 bins of pseudorapidity and 12 bins
-        of mass).
+  - "weight" which calculates other useful variables for the analysis;
+  - "afb" which estimate, from the varibles obtained by the previous function,
+    the mean values of Afb (forward-backward asymmetry) in different bins
+    of mass and pseudorapidity (in total 6 bins of pseudorapidity and 12 bins
+    of mass).
 
-    In the analysis the following version have been used:
+In the analysis the following version have been used:
 
-    - Python v3.8
-    - ROOT v6.24 ("source ~/root/bin/thisroot.sh" command needed before starting
-        the analysis to set the environment of ROOT)
+- Python v3.8
+- ROOT v6.24 ("source ~/root/bin/thisroot.sh" command needed before starting
+    the analysis to set the environment of ROOT)
 
 """
 
@@ -54,7 +55,8 @@ from pathlib import Path
 logger = utils.set_logger("Analysis", logging.DEBUG)
 
 def leptons_analysis(infile):
-    """ It takes in input a nano-AOD data file and returns two root files, named:
+    """
+    It takes in input a nano-AOD data file and returns two root files, named:
     "dimuon.root" and "dielectron.root" both with four columns, each one related
     to different quantity, for example:
     ["Dimuon_mass", "Dimuon_pt", "Dimuon_eta", "Dimuon_phi"].
@@ -226,7 +228,8 @@ def leptons_analysis(infile):
 
 
 def mumu_spectrum(infile, mu_cached=None):
-    """It takes in input the root data file or the data cached obtained by the
+    """
+    It takes in input the root data file or the data cached obtained by the
     function "leptons_analysis" named "dimuon.root" and plot the histogram of
     the dimuons invariant mass.
     """
@@ -274,7 +277,8 @@ def mumu_spectrum(infile, mu_cached=None):
 
 
 def mumu_spectrum_bump(infile, mu_cached=None):
-    """It takes in input the root data file or the data cached obtained by the
+    """
+    It takes in input the root data file or the data cached obtained by the
     function "leptons_analysis" named "dimuon.root" and plot the histogram of
     the dimuons invariant mass with a cut for events which have pt>20 GeV.
     """
@@ -326,7 +330,8 @@ def mumu_spectrum_bump(infile, mu_cached=None):
 
 
 def mumu_eta(infile, mu_cached=None):
-    """It takes in input the root data file or the data cached obtained by the
+    """
+    It takes in input the root data file or the data cached obtained by the
     function "leptons_analysis" named "dimuon.root" and plot the histogram of
     the dimuons pseudorapidity.
     """
@@ -372,6 +377,9 @@ def resonance_fit(infile, particle, mu_cached=None):
         \"Z\", \"all\."
         It retrieves a plot with the fit and a txt file with fit results, for
         each resonance.
+
+         and a workspace
+        ????????????????????????????????????????????????????????""
     """
 
     # An auxiliary TTree from the root data file is created.
