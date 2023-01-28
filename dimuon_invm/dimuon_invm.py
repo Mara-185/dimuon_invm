@@ -2,7 +2,8 @@
 The script takes as argument:
 
     - the data file (URL) of dileptons (-f), for example: "root:
-        //eospublic.cern.ch//eos/root-eos/cms_opendata_2012_nanoaod/Run2012B_DoubleMuParked.root";
+        //eospublic.cern.ch//eos/root-eos/cms_opendata_2012_nanoaod/
+        Run2012B_DoubleMuParked.root";
     - the string of the particle's name (-p) to analyze and fit, among those
         in the dimuon spectrum, which are :
         "eta", "rho","omega", "phi", "J-psi", "psi'", "Y", "Z".
@@ -19,15 +20,6 @@ There are different functions for the main analysis, among which:
         and a txt with the fit results.
     - "resonance_prop" creates different plots of the main characteristics of
         the particle chosen in the spectrum;
-
-For the extimation of the weak mixing angle studying the angular properties
-of the Z boson, it's necessary to import the module "Z_asymmetry.py":
-
-    - "weight" which calculates other useful variables for the analysis;
-    - "afb" which estimate, from the varibles obtained by the previous function,
-        the mean values of Afb (forward-backward asymmetry) in different bins
-        of mass and pseudorapidity (in total 6 bins of pseudorapidity and 12 bins
-        of mass).
 
 In the analysis the following version have been used:
 
@@ -101,6 +93,7 @@ def leptons_analysis(url):
     # Print cutflows
     logger.info("CutFlow muons:")
     rdf_mu.Report().Print()
+    print(f"Nslots: {rdf_mu.GetNSlots()}")
 
     # Save Node Graph
     ROOT.RDF.SaveGraph(rdf_mu, "rdf_mu.dot")
@@ -640,7 +633,7 @@ if __name__ == "__main__":
     ROOT.RooMsgService.instance().setSilentMode(True)
 
     # Enable the multi-threading analysis
-    nthreads = 4
+    nthreads = 8
     ROOT.ROOT.EnableImplicitMT(nthreads)
 
     # Style of the canvas
@@ -674,8 +667,8 @@ if __name__ == "__main__":
             to see resonances' fit and properties. Possible arguments are:\
             \"eta\", \"rho\",\"omega\", \"phi\", \"J-psi\", \"psi'\", \"Y\", \
             \"Z\", \"all\". Put the chosen string in quotes.")
-    parser.add_argument("-a", "--analysis", required=False, type=str,
-        default=str(True), help="If True, retrieve the data file from web and "
+    parser.add_argument("-no--a", "--analysis", required=False, action="store_false",
+        default=True, help="If True, retrieve the data file from web and "
         "does the selection. Otherwise it uses the \"dimuon.root\" file, "
         "created in a previous run of the script. Of corse in this case, it's "
         "needed to create the snapshot of the data before." )
@@ -689,7 +682,7 @@ if __name__ == "__main__":
     # Load the shared library "tools.cpp" which contains some functions to
     # calculate the useful quantities for the analysis.
     #ROOT.gInterpreter.ProcessLine('#include "tools.h"')
-    ROOT.gSystem.Load('../Z_asymmetry/tools_cpp.so')
+    ROOT.gSystem.Load('../Utils/tools_cpp.so')
 
     # LEPTONS ANALYSIS
 
@@ -699,7 +692,7 @@ if __name__ == "__main__":
     # But "leptons_analysis" must be run at least one to collect data.
     dimu_cached = None
     outfile_m = "dimuon.root"
-    if args.analysis==str(True):
+    if args.analysis==True:
         dimu_cached= leptons_analysis(f"{args.file}")
 
     # DIMUON MASS SPECTRUM
@@ -716,8 +709,8 @@ if __name__ == "__main__":
     # RESONANCES' FIT
     os.makedirs("Fit", exist_ok=True)
     logger.debug("The new directory \"Fit\" is created")
-    for p in args.particle:
-        resonance_fit(outfile_m, p)
+    # for p in args.particle:
+    #     resonance_fit(outfile_m, p)
 
     # # PROPERTIES
     os.makedirs("Properties", exist_ok=True)

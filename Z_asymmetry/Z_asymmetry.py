@@ -12,6 +12,13 @@ twelve mass bins:
 
     [0, 0.4, 0.8, 1.2, 1.6, 2.0, 2.4]
 
+The script takes as argument:
+
+    - the data file (URL) of dileptons (-f), for example: "root:
+        //eospublic.cern.ch//eos/root-eos/cms_opendata_2012_nanoaod/
+        Run2012B_DoubleMuParked.root";
+    - the range of files to analyze (-l).
+
 In the analysis the following version have been used:
 
     - Python v3.8
@@ -603,7 +610,7 @@ if __name__ == "__main__":
     # Load the shared library "tools.cpp" which contains some functions to
     # calculate the useful quantities for the analysis.
     #ROOT.gInterpreter.ProcessLine('#include "tools.h"')
-    ROOT.gSystem.Load('./tools_cpp.so')
+    ROOT.gSystem.Load('../Utils/tools_cpp.so')
 
     # Start the the timer
     start = time.time()
@@ -620,8 +627,8 @@ if __name__ == "__main__":
     parser.add_argument("-l", "--limit", nargs="+",type=int,
         help="Range of files to analyze, taken from the file index."
              " Format: -l start stop. \"stop\" is excluded.")
-    parser.add_argument("-a", "--analysis", type=str, default=str(True),
-        nargs="?", help="If True, retrieve data from internet, otherwise not. "
+    parser.add_argument("-no--a", "--analysis", action="store_false", default=True,
+        help="If True, retrieve data from internet, otherwise not. "
         "Default value is True. The range of files selected must be already "
         "analyzed!! Otherwise the script don't consider them.")
     args = parser.parse_args()
@@ -663,7 +670,7 @@ if __name__ == "__main__":
         exit()
 
     # Retrieve dataset from the web and start the selection on good events.
-    if args.analysis==str(True):
+    if args.analysis==True:
         root_files=ROOT.std.vector("string")() #allocare gli slot giusti?
         root_files.reserve(N_tot_files) ####????
         times = []
@@ -694,12 +701,11 @@ if __name__ == "__main__":
 
         # Create a RDataFrame with all the selected data.
         all_data = ROOT.RDataFrame("dimuon_w", root_files).Cache()
-        #all_data = ROOT.RDataFrame("dimuon_w", "dimuon_w*.root").Cache() #.Filter("Dimuon_pt>0").Cache()
         logger.info(f" Total number of events that passed the cuts is "
                     f"{all_data.Count().GetValue()}.")
         print(all_data.GetNSlots())
 
-    elif args.analysis==str(False):
+    elif args.analysis==False:
         root_files = ROOT.std.vector("string")()
         with open("Analyzed_files.txt") as inf:
             for line in inf:

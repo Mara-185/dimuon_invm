@@ -1,2 +1,1 @@
 dimuon_w0[Run2011A_SingleMu].root
-dimuon_w0[Run2011A_DoubleMu].root
