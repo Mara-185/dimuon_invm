@@ -54,10 +54,6 @@ sys.path.insert(0, root_utils)
 #sys.path.insert(0, os.path.join(root_utils, "utils"))
 import utils
 
-# def main(infile, particle="all"):
-
-# Creating the logger and setting its level
-#logger = utils.set_logger("Analysis", logging.DEBUG)
 
 def leptons_analysis(url):
     """
@@ -678,6 +674,11 @@ if __name__ == "__main__":
             to see resonances' fit and properties. Possible arguments are:\
             \"eta\", \"rho\",\"omega\", \"phi\", \"J-psi\", \"psi'\", \"Y\", \
             \"Z\", \"all\". Put the chosen string in quotes.")
+    parser.add_argument("-a", "--analysis", required=False, type=str,
+        default=str(True), help="If True, retrieve the data file from web and "
+        "does the selection. Otherwise it uses the \"dimuon.root\" file, "
+        "created in a previous run of the script. Of corse in this case, it's "
+        "needed to create the snapshot of the data before." )
     args = parser.parse_args()
 
     # Creating the logger and setting its level
@@ -698,7 +699,8 @@ if __name__ == "__main__":
     # But "leptons_analysis" must be run at least one to collect data.
     dimu_cached = None
     outfile_m = "dimuon.root"
-    #dimu_cached= leptons_analysis(f"{args.file}")
+    if args.analysis==str(True):
+        dimu_cached= leptons_analysis(f"{args.file}")
 
     # DIMUON MASS SPECTRUM
     os.makedirs("Spectra", exist_ok=True)
@@ -715,59 +717,14 @@ if __name__ == "__main__":
     os.makedirs("Fit", exist_ok=True)
     logger.debug("The new directory \"Fit\" is created")
     for p in args.particle:
-        #resonance_fit(outfile_m, f"{args.particle}")
         resonance_fit(outfile_m, p)
-    #
+
     # # PROPERTIES
-    # os.makedirs("Properties", exist_ok=True)
-    # logger.debug("The new directory \"Properties\" is created")
+    os.makedirs("Properties", exist_ok=True)
+    logger.debug("The new directory \"Properties\" is created")
+    for p in args.particle:
+        resonance_prop(outfile_m, dimu_cached, p)
     # # resonance_prop(outfile_m, dimu_cached, f"{args.particle}")
-    #
-    #
-    # # Z ANALYSIS
-    # os.makedirs("Z analysis", exist_ok=True)
-    # logger.debug("The new directory \"Z analysis\" is created")
-    #
-    # # Plot Z resonance and cos(theta*)in different rapidity ranges for both
-    # # dimuons and dielectrons data
-    # data = ["dimuon", "dielectron"]
-    # cached = [dimu_cached, diel_cached]
-    # for i in range(0, len(utils.RAPIDITY_BIN), 1):
-    #
-    #     # Retrieve the values of eta range bins (y_inf, y_sup)
-    #     y_lim = utils.RAPIDITY_BIN[f"{i}"]
-    #
-    #     # Cut on pt to reduce background (pt_inf, pt_sup)
-    #     pt_lim = (10,100)
-    #     pt_lim2 = (80,100)
-    #
-    #     bin = 40 #binning
-    #     for dilepton, cache in zip(data, cached):
-    #         #Z_asymmetry.mass_vs_eta(f"{dilepton}.root",y_lim,pt_lim,bin,cache)
-    #         #Z_asymmetry.cos_vs_eta(f"{dilepton}.root",y_lim,pt_lim,bin,cache)
-    #         pass
-    #
-    # # AFB (Forward_Backward Asymmetry)
-    # #Z_asymmetry.weight("dimuon.root", dimu_cached)
-    # Z_asymmetry.afb("dimuon_w.root", pt_lim)
-    #
-    # # Plot AFB for different cut in pt
-    #
-    # os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Z analysis')))
-    #
-    # # Create a txt with a list of the files from which takes values.
-    # pt_plot = [f"{pt_lim}", f"{pt_lim2}"]
-    # print(pt_plot[0])
-    # for p in pt_plot:
-    #     pathlist = Path("").glob(f"*_{p}dimuon_w.txt")
-    #     with open(f"Afblist_{p}.txt", "w+") as outf:
-    #         for path in pathlist:
-    #             print(path, file=outf)
-    #
-    # # Dimuon Afb plots
-    # for p in pt_plot:
-    #     Z_asymmetry.afb_plot(f"Afblist_{p}.txt")
-    # os.chdir(os.path.dirname(os. getcwd()))
 
 
     # Elapsed time

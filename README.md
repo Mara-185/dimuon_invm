@@ -9,7 +9,7 @@ Il pacchetto propone due analisi differenti su dati di tipo NanoAOD:
 
 E.g. for the Y(1S,2S,3S):
 
-![Image](./dimuon_invm/Y_fit.png "icon")
+![Image](./dimuon_invm/Fit/Y_fit.png "icon")
 
 * **Z_asymmetry**: Seleziona coppie di muoni che passano una particolare selezione (referenza: [link](https://arxiv.org/abs/1806.00863)) e riproduce il plot della Forward-Backward asymmetry in sei diversi range di rapidita'.
 
