@@ -1,5 +1,5 @@
 
-  RooFitResult: minimized FCN value: -1.67732e+06, estimated distance to minimum: 9.00606e-05
+  RooFitResult: minimized FCN value: -1.67732e+06, estimated distance to minimum: 9.00601e-05
                 covariance matrix quality: Full, accurate covariance matrix
                 Status : MINIMIZE=0 HESSE=0 
 

@@ -43,11 +43,10 @@ from pathlib import Path
 # Add my modules to the path
 root_utils = os.path.abspath('../Utils')
 sys.path.insert(0, root_utils)
-#sys.path.insert(0, os.path.join(root_utils, "utils"))
 import utils
 
 
-def leptons_analysis(url):
+def leptons_analysis(url, outfile):
     """
     It takes in input a nano-AOD data file and returns a root files, named:
     "dimuon.root" with four useful columns for further analysis:
@@ -107,7 +106,8 @@ def leptons_analysis(url):
     # dimuons in a single root file.
     # Data are also cached to speed up the analysis.
     logger.debug("Starting snapshots...")
-    dimu_cached = rdf_mu.Snapshot("dimuon", "dimuon.root", branchlist_mu).\
+    tree = outfile_m.replace(".root", "")
+    dimu_cached = rdf_mu.Snapshot(tree, outfile, branchlist_mu).\
         Cache()
     logger.info("The snapshots are done and data are cached.")
 
@@ -300,7 +300,7 @@ def resonance_fit(infile, particle, mu_cached=None):
         xmax = utils.FIT_INIT_PARAM[f"{particle}"][4]
         ymax = utils.FIT_INIT_PARAM[f"{particle}"][5]
         name = utils.FIT_INIT_PARAM[f"{particle}"][6]
-        ndf = utils.FIT_INIT_PARAM[f"{particle}"][7]
+        #ndf = utils.FIT_INIT_PARAM[f"{particle}"][7]
 
         # Retrieve values of mass range for each particles
         lower_mass_edge = utils.PARTICLES_MASS_RANGE[f"{particle}"][0]
@@ -363,6 +363,15 @@ def resonance_fit(infile, particle, mu_cached=None):
                 ROOT.RooArgList(sig1, sig2, sig3, bkgf),
                 ROOT.RooArgList(nsig1, nsig2, nsig3, nbkg))
         else:
+            # NEW
+            # eff = ROOT.RooRealVar("eff", "The efficiency", 0.20, 0.00001, 1.)
+            # lum = ROOT.RooRealVar("lum", "The luminosity", 2, 0.00001, 50, "pb-1")
+            # cross = ROOT.RooRealVar("cross", "The cross section", 3., 0., 40, "pb")
+            # nsig = ROOT.RooFormulaVar("N", "@0*@1*@2", ROOT.RooArgList(eff, lum, cross))
+            # eff.setConstant(1)
+            # lum.setConstant(1)
+
+            # OLD
             nsig = ROOT.RooRealVar("nsig", "signal events", num/5, 0, num)
             tot = ROOT.RooAddPdf("Model", "The total pdf",
                 ROOT.RooArgList(sigf, bkgf), ROOT.RooArgList(nsig, nbkg))
@@ -378,6 +387,9 @@ def resonance_fit(infile, particle, mu_cached=None):
 
         # Fit
         results = tot.fitTo(rds,opt_list)
+
+        # Retrieve number of free parameters
+        ndf = results.floatParsFinal().getSize()
 
         #Plot and styling
         mframe = Dimuon_mass.frame()
@@ -397,7 +409,7 @@ def resonance_fit(infile, particle, mu_cached=None):
 
         # Retrieve the Chi Square
         chi = mframe.chiSquare("Model","Data", ndf)
-        chi2 = f"chi2 = {round(chi,2)}"
+        chi2 = f"chi/ndf = {round(chi*ndf,2)}/{ndf} = {round(chi,2)}"
 
         if particle =="Y":
             for i in range(1,4,1):
@@ -650,7 +662,7 @@ if __name__ == "__main__":
     myStyle.cd()
 
     # Enable parallel analysis
-    nthreads = 8
+    nthreads = 10
     ROOT.ROOT.EnableImplicitMT(nthreads)
 
     # Start the the timer
@@ -660,7 +672,7 @@ if __name__ == "__main__":
     # Creating the parser
     parser = argparse.ArgumentParser(description =
         "Processing the root file of data.")
-    parser.add_argument("-f", "--file",required=True, type=str,
+    parser.add_argument("-f", "--file", type=str,
         help="The path of the nanoAOD file to analyze.")
     parser.add_argument("-p", "--particle",required=False, type=str, nargs="+",
         help="The name of the particle to analyze. It is necessary if you want \
@@ -672,6 +684,7 @@ if __name__ == "__main__":
         "does the selection. Otherwise it uses the \"dimuon.root\" file, "
         "created in a previous run of the script. Of corse in this case, it's "
         "needed to create the snapshot of the data before." )
+    parser.add_argument("-o", "--outfile", required=False, type=str)
     args = parser.parse_args()
 
     # Creating the logger and setting its level
@@ -690,33 +703,44 @@ if __name__ == "__main__":
     # and diel_cached are set to None, so in the following the other functions
     # take data directly from tha data saved by the snapshot.
     # But "leptons_analysis" must be run at least one to collect data.
-    dimu_cached = None
-    outfile_m = "dimuon.root"
+
     if args.analysis==True:
-        dimu_cached= leptons_analysis(f"{args.file}")
+        if args.file!="":
+            try:
+                s=args.file.rfind("/")
+                outfile_m = args.file[s+1:]
+                dimu_cached = None
+                dimu_cached = leptons_analysis(f"{args.file}", outfile_m)
+            except AttributeError:
+                logger.error("If you want to run tha analaysis yuo have to insert "
+                    "the path of the data files!")
+                sys.exit()
+    else:
+        outfile_m = args.outfile
+
 
     # DIMUON MASS SPECTRUM
     os.makedirs("Spectra", exist_ok=True)
     logger.debug("The new directory \"Spectra\" is created")
-    mumu_spectrum(outfile_m, dimu_cached)
+    # mumu_spectrum(outfile_m, dimu_cached)
 
-    # # DIMUON MASS SPECTRUM WITHOUT BUMP
-    # #mumu_spectrum_bump(outfile_m, dimu_cached)
-    #
+
     # # DIMUON ETA DISTRIBUTION
+    # ACCETTANZA DELL'ESPERIMENTO DALA DISTRIBUZIONE IN ETA???
+    # DIMINUISCE CON IL PT????
     # #mumu_eta(outfile_m, dimu_cached)
 
     # RESONANCES' FIT
     os.makedirs("Fit", exist_ok=True)
     logger.debug("The new directory \"Fit\" is created")
-    # for p in args.particle:
-    #     resonance_fit(outfile_m, p)
+    for p in args.particle:
+        resonance_fit(outfile_m, p)
 
     # # PROPERTIES
     os.makedirs("Properties", exist_ok=True)
     logger.debug("The new directory \"Properties\" is created")
-    for p in args.particle:
-        resonance_prop(outfile_m, dimu_cached, p)
+    # for p in args.particle:
+    #     resonance_prop(outfile_m, dimu_cached, p)
     # # resonance_prop(outfile_m, dimu_cached, f"{args.particle}")
 
 
