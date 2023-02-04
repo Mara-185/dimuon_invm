@@ -58,6 +58,12 @@ def retrieve_dataset(findex, start, stop):
     :type start: int, required
     :param stop: second index of the range of files to analyze
     :type stop: int, required
+    :return files: list of the files name analyzed.
+    :rtype files: standard vector of string
+    :return times: list of time elpased analyzing each file
+    :rtype times: list
+    :return N: list of events analyzed for each file
+    :rtype N: list
 
     """
 
@@ -77,8 +83,7 @@ def retrieve_dataset(findex, start, stop):
             logger.info(f" Analyzing file number {i+1} :\n{d}")
 
             start_analysis = time.time()
-            #string_file, N_events = z_main(d, i, run)
-            string_file, N_events = main2(d, i, run)
+            string_file, N_events = z_main(d, i, run)
             stop_analysis = time.time() - start_analysis
             logger.info(f" Elapsed time : {stop_analysis}")
 
@@ -90,7 +95,7 @@ def retrieve_dataset(findex, start, stop):
 
 
 
-def main2(url, iteration, run):
+def z_main(url, iteration, run):
     """
     The function create an RDataFrame to make the selection of the good events
     for the analysis, to compute some useful quantities and store them in new
@@ -101,8 +106,13 @@ def main2(url, iteration, run):
     :type url: url of root file, required.
     :param iteration: number of file analyzed
     :type iteration: int, required
+    :return snap_name: name of the root file created
+    :rtype snap_name: string
+    :return N_ev: number of all events in the file
+    :return N_Ev: float
 
     """
+
     logger.info("Start the analysis...")
 
     # Create an RDataFrame to make selection on data from the root file.
@@ -160,8 +170,7 @@ def main2(url, iteration, run):
     snap_name = f"dimuon_w{iteration}[{run}].root"
 
     # A snapshot is done to collect the useful physiscal quantity of the
-    # dileptons in a root file. Also a graph showing the complete analysis on
-    # data is saved.
+    # dileptons in a root file and a node graph is saved.
     ROOT.RDF.SaveGraph(rdf_cut, "rdf_main2.dot")
     rdf_cut.Snapshot("dimuon_w", snap_name, branchlist)
     logger.info(" The snapshot is done.")
@@ -171,25 +180,23 @@ def main2(url, iteration, run):
     return snap_name, N_ev
 
 
-def mass_eta(rdf_all, rap_lim, pt_lim, infile=None):
+def mass_eta(rdf_all, rap_lim, pt_lim = (0,120), infile=None):
     """
-    Plot the Z resonance (mass range from 60 GeV to 120 GeV), for the six
-    different range of rapidity. It also make a cut on pt. ????Metti default?
-    Data can be passed as RDataFrame or as root file. In every case, the name
-    of the TTree has to be "dimuon_w".
+    Plot the Z resonance (mass range from 60 GeV to 120 GeV), in the six
+    different range of rapidity. It also make a cut on pt.
     Plot is saved as "Dimuon_mass(rap_inf,rap_sup)_(pt_inf,pt_sup).png" in a
     directory named "Z analysis".
-    It also possible make plots with data saved in a root file, but the name of
-    the TTree has to be the same of the file.
-
-        - infile: file from which retrieve data. ???????????
+    Data can be passed as RDataFrame or as root file, but the name of the TTree
+    has to be the same of the file.
 
     :param rdf_all: RDataFrame to analyze.
     :type rdf_all: RDataFrame, required
     :param rap_lim: range limits of rapidity
     :type rap_lim: tuple, required
     :param pt_lim: range limits of transverse momentum
-    :type pt_lim: tuple, required
+    :type pt_lim: tuple, required, default=(0,120)
+    :param infile: data file
+    :type infile: root file, not required
 
     """
 
@@ -233,23 +240,23 @@ def mass_eta(rdf_all, rap_lim, pt_lim, infile=None):
     os.chdir(os.path.dirname(os. getcwd()))
 
 
-def cos_eta(rdf_all, rap_lim, pt_lim, infile=None):
+def cos_eta(rdf_all, rap_lim, pt_lim=(0,120), infile=None):
     """
-    Plot the cos of Z resonance (mass range from 60 GeV to 120 GeV), for the six
+    Plot the cos of Z resonance (mass range from 60 GeV to 120 GeV), in the six
     different range of rapidity. It also make a cut on pt.
-    Data can be passed as RDataFrame or as root file. In every case, the name
-    of the TTree has to be "dimuon_w".
     Plot is saved as "Dimuon_cos(rap_inf,rap_sup)_(pt_inf,pt_sup).png" in a
     directory named "Z analysis".
-
-        - infile:??????
+    Data can be passed as RDataFrame or as root file, but the name of the TTree
+    has to be the same of the file.
 
     :param rdf_all: RDataFrame to analyze.
     :type rdf_all: RDataFrame, required
     :param rap_lim: range limits of rapidity
     :type rap_lim: tuple, required
     :param pt_lim: range limits of transverse momentum
-    :type pt_lim: tuple, required
+    :type pt_lim: tuple, required, , default=(0,120)
+    :param infile: data file
+    :type infile: root file, not required
 
     """
 
@@ -399,8 +406,8 @@ def afb_plot(infile, pt_lim):
         graph.SetTitle(f"{name}")
 
         c.Print(f"{file_name}", f"Title:{name}")
+        c.SaveAs(f"{name}.png")
     c.Print(f"{file_name}]", f"Title:{name}")
-
 
 
 
@@ -427,7 +434,6 @@ if __name__ == "__main__":
 
     # Load the shared library "tools.cpp" which contains some functions to
     # calculate the useful quantities for the analysis.
-    #ROOT.gInterpreter.ProcessLine('#include "tools.h"')
     ROOT.gSystem.Load('../Utils/tools_cpp.so')
 
     # Start the the timer
@@ -469,23 +475,25 @@ if __name__ == "__main__":
         ROOT.ROOT.EnableImplicitMT(nthreads)
 
     # Check on the validity of the inserted input (-l).
+    #???????????????????????????????????????????????
     lim=[]
     N_tot_files = 0
     try:
         for n in range(0, len(args.limit), 2):
-            limits= (args.limit[n], args.limit[n+1])
-            lim.append(limits)
-            N_tot_files+=(args.limit[n+1] - args.limit[n])  #????
+            limits = (args.limit[n], args.limit[n+1])
     except ValueError:
         logger.error("The inserted values are not right. Check on the input "
                       "signature in the help's parser. First index has to be"
                       "greater than the second.")
+    else:
+        lim.append(limits)
+        N_tot_files+=(args.limit[n+1] - args.limit[n])
 
     # Check the correspondance between number of index files and limits inserted.
     if len(args.file)!=len(lim):
         logger.error(" There isn't correspondance between number of index "
             "files and ranges inserted. Please, check on help's parser.")
-        exit()
+        sys.exit(1)
 
     # Retrieve dataset from the web and start the selection on good events.
     if args.analysis==True:
@@ -540,7 +548,7 @@ if __name__ == "__main__":
     else:
         logger.error(" Invalid input for \"-a\" (analysis) option. "
                     "Possibilities are: True or False.")
-        exit()
+        sys.exit(1)
 
     # Move the snapshots in a dedicated directory
     if args.analysis==True:
@@ -577,5 +585,7 @@ if __name__ == "__main__":
     os.chdir(os.path.dirname(os. getcwd()))
 
     # Elapsed time
-    logger.info(f" Elapsed time from the beginning is: {time.time()-start}(real time) seconds")
-    logger.info(f" Elapsed time from the beginning is: {time.process_time()-start_cpu}(cpu time) seconds")
+    logger.info(f" Elapsed time from the beginning is:"
+        f" {time.time()-start}(real time) seconds")
+    logger.info(f" Elapsed time from the beginning is:"
+        f" {time.process_time()-start_cpu}(cpu time) seconds")

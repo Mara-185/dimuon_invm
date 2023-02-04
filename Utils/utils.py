@@ -62,32 +62,31 @@ PARTICLES_MASS_RANGE = {
 
 # Dictionary with intialization parameters for the fit and plot styling
 # "particle" :
-# (mean0,sigma0,signal,n° parameters for background,xmax(box),ymax(box),name,
-#   n° total parameters )
+# (mean0,sigma0,signal,n° parameters for background,xmax(box),ymax(box),name)
 
 FIT_INIT_PARAM = {
     "eta" : (ROOT.RooRealVar("mean", "mean", 0.552, 0.53, 0.56),
         ROOT.RooRealVar("sigma", "sigma", 0.07, 0.01, 0.1),
-        "gaus",2, 0.39, 0.43, "#eta", 6),
+        "gaus",2, 0.39, 0.43, "#eta"),
     "rho" : (ROOT.RooRealVar("mean", "mean", 0.78, 0.75, 0.8),
         ROOT.RooRealVar("sigma", "sigma", 0.01, 0.001, 0.1),
-        "gaus",2, 0.39, 0.8, "#rho", 6),
+        "gaus",2, 0.39, 0.8, "#rho"),
     "omega" : (ROOT.RooRealVar("mean", "mean", 0.78, 0.75, 0.8),
         ROOT.RooRealVar("sigma", "sigma", 0.01, 0.001, 0.1),
-        "gaus",2, 0.39, 0.8, "#omega", 6),
+        "gaus",2, 0.39, 0.8, "#omega"),
     "phi": (ROOT.RooRealVar("mean", "mean", 1.02, 0.98, 1.06),
         ROOT.RooRealVar("sigma", "sigma", 0.004, 0.0001, 0.1),
-        "gaus",2, 0.39, 0.8, "#phi", 6),
+        "gaus",2, 0.39, 0.8, "#phi"),
     "J-psi": (ROOT.RooRealVar("mean", "mean", 3.10, 2.9, 3.2),
         ROOT.RooRealVar("sigma", "sigma", 0.04, 0.0001, 1.),
-        "Crystal ball", 3, 0.4, 0.8, "J/#psi", 9),
+        "Crystal ball", 3, 0.4, 0.8, "J/#psi"),
     "psi'" : (ROOT.RooRealVar("mean", "mean", 3.7, 3.6, 3.8),
         ROOT.RooRealVar("sigma", "sigma", 0.04, 0.0001, 1.),
-        "gaus", 3, 0.9, 0.8, "#psi'", 7),
+        "gaus", 3, 0.9, 0.8, "#psi'"),
     "Z" : (ROOT.RooRealVar("mean", "mean", 91, 89, 93),
         ROOT.RooRealVar("sigma", "sigma",2, 0.01,4),
-        "gaus", 2,0.42, 0.8, "Z", 6),
-    "Y" : (0, 0, "3gaus", 3, 0.4, 0.8, "Y", 13),
+        "gaus", 2,0.42, 0.8, "Z"),
+    "Y" : (0, 0, "3gaus", 3, 0.4, 0.8, "Y"),
     "Y1" : (ROOT.RooRealVar("mean1", "mean1", 9.4, 9.2, 9.7),
         ROOT.RooRealVar("sigma1", "sigma1", 0.005, 0.001, 1.)),
     "Y2" : (ROOT.RooRealVar("mean2", "mean2", 10, 9.8, 10.15),
