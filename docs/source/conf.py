@@ -21,13 +21,11 @@ sys.path.insert(0, os.path.join(package_root, package_name))
 
 
 package_root2 = os.path.abspath('../../Utils/')
-#sys.path.insert(0, package_root2)
+sys.path.insert(0, package_root2)
 sys.path.insert(0, os.path.join(package_root2, package_name2))
 
 #package_root3 = os.path.abspath('../../Z_asymmetry/')
 sys.path.insert(0, os.path.join(package_root, package_name3))
-
-
 sys.path.insert(0, os.path.join(package_root2, package_name4))
 
 # -- Project information -----------------------------------------------------
