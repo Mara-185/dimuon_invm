@@ -29,6 +29,8 @@ In the analysis the following version have been used:
 
 """
 
+#"root://eospublic.cern.ch//eos/root-eos/cms_opendata_2012_nanoaod/Run2012B_DoubleMuParked.root"
+
 import ROOT
 import argparse
 import logging
@@ -300,7 +302,6 @@ def resonance_fit(infile, particle, mu_cached=None):
         xmax = utils.FIT_INIT_PARAM[f"{particle}"][4]
         ymax = utils.FIT_INIT_PARAM[f"{particle}"][5]
         name = utils.FIT_INIT_PARAM[f"{particle}"][6]
-        #ndf = utils.FIT_INIT_PARAM[f"{particle}"][7]
 
         # Retrieve values of mass range for each particles
         lower_mass_edge = utils.PARTICLES_MASS_RANGE[f"{particle}"][0]
@@ -705,19 +706,22 @@ if __name__ == "__main__":
     # But "leptons_analysis" must be run at least one to collect data.
 
     if args.analysis==True:
-        if args.file!="":
-            try:
-                s=args.file.rfind("/")
-                outfile_m = args.file[s+1:]
-                dimu_cached = None
-                dimu_cached = leptons_analysis(f"{args.file}", outfile_m)
-            except AttributeError:
-                logger.error("If you want to run tha analaysis yuo have to insert "
-                    "the path of the data files!")
-                sys.exit()
+        try:
+            s=args.file.rfind("/")
+        except AttributeError as ex:
+            logger.error("If you want to run tha analaysis yuo have to insert "
+                f"the path of the data files! \n {ex}")
+            sys.exit()
+        else:
+            outfile_m = args.file[s+1:]
+            dimu_cached = None
+            dimu_cached = leptons_analysis(f"{args.file}", outfile_m)
     else:
-        outfile_m = args.outfile
-
+        if not os.path.isfile(args.outfile):
+            raise IOError(f"The file {outfile_m} doesn't exist. Maybe you have "
+                           "to run the analysis first.")
+        else:
+            outfile_m = args.outfile
 
     # DIMUON MASS SPECTRUM
     os.makedirs("Spectra", exist_ok=True)
