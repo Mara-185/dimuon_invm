@@ -31,16 +31,13 @@ In the analysis the following version have been used:
 
 #"root://eospublic.cern.ch//eos/root-eos/cms_opendata_2012_nanoaod/Run2012B_DoubleMuParked.root"
 
-import ROOT
 import argparse
 import logging
 import os
 import math
 import sys
-import glob
 import time
-import numpy as np
-from pathlib import Path
+import ROOT
 
 # Add my modules to the path
 root_utils = os.path.abspath('../Utils')
@@ -63,8 +60,6 @@ def leptons_analysis(url, outfile):
     :rtype: RDataFrame cached.
 
     """
-
-    logging.info("Start the analysis...")
 
     # Create an RDataFrame from the root file.
     root_file = ROOT.TFile.Open(url, "READ")
@@ -111,13 +106,13 @@ def leptons_analysis(url, outfile):
     # in a single root file. Data are also cached in memory.
     logger.debug("Starting snapshots...")
     tree = outfile_m.replace(".root", "")
-    dimu_cached = rdf_mu.Snapshot(tree, outfile, branchlist_mu).\
+    dimu_cache = rdf_mu.Snapshot(tree, outfile, branchlist_mu).\
         Cache()
-    logger.info("The snapshots are done and data are cached.")
+    logger.info("The snapshot is done and data are cached.")
 
     # Close the file and return data cached.
     root_file.Close()
-    return dimu_cached
+    return dimu_cache
 
 
 def mumu_spectrum(infile, mu_cached=None, bump=False):
@@ -137,15 +132,15 @@ def mumu_spectrum(infile, mu_cached=None, bump=False):
     """
 
     # Histogram of dimuons mass
-    if mu_cached == None:
+    if mu_cached is None:
         t_name = infile.replace(".root", "")
         rdf = ROOT.RDataFrame(t_name,infile)
-        if bump==False:
+        if bump is False:
             rdf = rdf.Filter("Dimuon_pt>20")
         h = rdf.Histo1D(ROOT.RDF.TH1DModel("Dimuon mass", "Dimuon mass",
             50000, 0.3, 200), "Dimuon_mass")
     else:
-        if bump==False:
+        if bump is False:
             mu_cached = mu_cached.Filter("Dimuon_pt>20")
         h = mu_cached.Filter("Dimuon_pt>20").Histo1D(
             ROOT.RDF.TH1DModel("Dimuon mass", "Dimuon mass", 50000, 0.3, 200),
@@ -177,14 +172,14 @@ def mumu_spectrum(infile, mu_cached=None, bump=False):
 
     # Save results in png in the folder "Spectra"
     os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Spectra')))
-    if bump==False:
+    if bump is False:
         c.SaveAs("dimuon_spectrum.png")
     else:
         c.SaveAs("dimuon_spectrum_wo_bump.png")
 
 
     os.chdir(os.path.dirname(os. getcwd()))
-    logger.info("The files \"dimuon_spectrum.png\" have been created.")
+    logger.info("The plot \"dimuon_spectrum.png\" has been created.")
 
 
 def mumu_eta(infile, mu_cached=None):
@@ -196,7 +191,7 @@ def mumu_eta(infile, mu_cached=None):
     """
 
     # Histogram of dimuons pseudorapidity
-    if mu_cached == None:
+    if mu_cached is None:
         t_name = infile.replace(".root", "")
         rdf = ROOT.RDataFrame(t_name,infile)
         #rdf_m = rdf.Filter("Dimuon_pt>20")
@@ -235,7 +230,7 @@ def resonance_fit(infile, particle, mu_cached=None):
     It takes in input the root data file obtained with "leptons_analysis"
     and a string with the name of the resonance to fit. Possible arguments
     are: \"eta\", \"rho\",\"omega\", \"phi\", \"J-psi\", \"psi'\", \"Y\",
-    \"Z\", \"all\."
+    \"Z\", \"all\"."
     It creates a plot with the fit and a txt file with fit results, for the
     chosen resonance(s).
 
@@ -252,7 +247,7 @@ def resonance_fit(infile, particle, mu_cached=None):
     start_fit = time.time()
 
     # An auxiliary TTree from the root data file is created.
-    if mu_cached == None:
+    if mu_cached is None:
         f = ROOT.TFile.Open(infile)
         tree_name = infile.replace(".root", "")
         tree = f.Get(f"{tree_name}")
@@ -277,7 +272,7 @@ def resonance_fit(infile, particle, mu_cached=None):
         for p in arguments:
             resonance_fit(infile, p)
     elif particle not in arguments:
-        logging.error("Invalid argument! \nPossible arguments are:\"eta\", "
+        logger.error("Invalid argument! \nPossible arguments are:\"eta\", "
             "\"rho\", \"omega\",\"phi\", \"J-psi\", \"psi'\", \"Y\", \"Z\" or "
             "\"all\"")
         inp = input("Insert the right string or leave it empty to exit the "
@@ -285,9 +280,9 @@ def resonance_fit(infile, particle, mu_cached=None):
         if inp=="":
             sys.exit(1)
         else:
-            logging.info(f"The input chosen is: \"{inp}\"")
+            logger.info(f"The input chosen is: \"{inp}\"")
             resonance_fit(infile, inp)
-            error_flag=0;
+            error_flag=0
 
     if particle!="all" and error_flag:
         logger.info(f"Fit of particle {particle}...")
@@ -515,7 +510,7 @@ def resonance_prop(infile, mu_cached=None, particle="all"):
     error_flag = 1
 
     # Rdataframe with useful cuts is created.
-    if mu_cached == None:
+    if mu_cached is None:
         t_name = infile.replace(".root", "")
         rdf = ROOT.RDataFrame(t_name,infile)
         rdf_cut=rdf.Filter(f" Dimuon_pt>{pt_cut_inf} && Dimuon_pt<{pt_cut_sup}")
@@ -530,7 +525,7 @@ def resonance_prop(infile, mu_cached=None, particle="all"):
         for p in arguments:
             resonance_prop(infile,mu_cached, p)
     elif particle not in arguments:
-        logging.error("Invalid argument! \nPossible arguments are:\"eta\", "
+        logger.error("Invalid argument! \nPossible arguments are:\"eta\", "
             "\"rho\", \"omega\",\"phi\", \"J-psi\", \"psi'\", \"Y\", \"Z\" or "
             "\"all\"")
         inp = input("Insert the right string or leave it empty to exit the "
@@ -538,13 +533,13 @@ def resonance_prop(infile, mu_cached=None, particle="all"):
         if inp=="":
             sys.exit(1)
         else:
-            logging.info(f"The particle chosen is: \"{inp}\"")
+            logger.info(f"The particle chosen is: \"{inp}\"")
             resonance_prop(infile,mu_cached, inp)
             error_flag=0
 
     if particle!="all" and error_flag:
 
-        logging.info(f"Plot properties of particle {particle}...")
+        logger.info(f"Plot properties of particle {particle}...")
 
         # Retrieve values of mass range for each particle
         lower_mass_edge = utils.PARTICLES_MASS_RANGE[f"{particle}"][0]
@@ -597,7 +592,6 @@ def resonance_prop(infile, mu_cached=None, particle="all"):
                         os.chdir(os.path.abspath(os.path.join(os.sep,
                             f'{os.getcwd()}', 'Properties')))
                         c.Print(f"Y({i}S) properties.pdf[", "pdf")
-                        logger.debug("In Properties")
                     logger.debug(f"Iteration on histograms number {j}")
                     h.Draw()
                     c.Print(f"Y({i}S) properties.pdf", f"Title:Y({i}S) {k}")
@@ -636,7 +630,6 @@ def resonance_prop(infile, mu_cached=None, particle="all"):
                     os.chdir(os.path.abspath(os.path.join(os.sep,
                         f'{os.getcwd()}','Properties')))
                     c.Print(f"{particle} properties.pdf[", "pdf")
-                    logger.debug("In Properties")
                 h.Draw()
                 c.Print(f"{particle} properties.pdf", f"Title:{particle} {k}")
                 c.SaveAs(f"{particle} {k}.png")
@@ -714,24 +707,22 @@ if __name__ == "__main__":
     #  from the root file. But "leptons_analysis" must be run at least one to
     # collect data.
 
-    if args.analysis==True:
+    if args.analysis is True:
         try:
             s=args.file.rfind("/")
         except AttributeError as ex:
-            logger.error("If you want to run tha analaysis yuo have to insert "
+            logger.error("If you want to run the analaysis you have to insert "
                 f"the path of the data files! \n {ex}")
             sys.exit(1)
         else:
             outfile_m = args.file[s+1:]
-            dimu_cached = None
             dimu_cached = leptons_analysis(f"{args.file}", outfile_m)
     else:
         if not os.path.isfile(args.outfile):
             raise IOError(f"The file {outfile_m} doesn't exist. Maybe you have "
                            "to run the analysis first.")
-        else:
-            dimu_cached = None
-            outfile_m = args.outfile
+        dimu_cached = None
+        outfile_m = args.outfile
 
     # DIMUON MASS SPECTRUM
     os.makedirs("Spectra", exist_ok=True)

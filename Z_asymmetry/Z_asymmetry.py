@@ -28,13 +28,13 @@ In the analysis the following version have been used:
 
 """
 
-import ROOT
 import logging
 import os
 import argparse
 import time
 import sys
 from pathlib import Path
+import ROOT
 
 # Add my modules to the path
 root_utils = os.path.abspath('../Utils')
@@ -113,8 +113,6 @@ def z_main(url, iteration, run):
 
     """
 
-    logger.info("Start the analysis...")
-
     # Create an RDataFrame to make selection on data from the root file.
     root_file = ROOT.TFile.Open(url, "READ")
     tree_name = root_file.GetListOfKeys().At(0).GetName()
@@ -134,7 +132,7 @@ def z_main(url, iteration, run):
         Define("Mu_charge", "Muon_charge[mask]").\
         Define("Mu_phi", "Muon_phi[mask]").\
         Define("Mu_eta", "Muon_eta[mask]").\
-        Filter("Mu_pt.size()>=nMuon").\
+        Filter("Mu_pt.size()>=nMuon", "Events with at least two muons left").\
         Filter("Mu_pt[0]>25 && Mu_pt[1]>15",
                "Trigger on the leading and the next leading muons").\
         Filter("Mu_charge[0]!=Mu_charge[1]",
@@ -158,8 +156,8 @@ def z_main(url, iteration, run):
             "cos_rapidity(Mu_pt[0], Mu_eta[0], Mu_phi[0], Mu_mass[0], \
              Mu_pt[1], Mu_eta[1], Mu_phi[1], Mu_mass[1])[1]").\
         Filter("Dimuon_mass>60 && Dimuon_mass<120","Cut on Z resonance").\
-        Define("w_d", f"weights(Dimuon_pt,Dimuon_mass, Dimuon_cos)[0]").\
-        Define("w_n", f"weights(Dimuon_pt,Dimuon_mass, Dimuon_cos)[1]")#.\
+        Define("w_d", "weights(Dimuon_pt,Dimuon_mass, Dimuon_cos)[0]").\
+        Define("w_n", "weights(Dimuon_pt,Dimuon_mass, Dimuon_cos)[1]")#.\
         #Snapshot("dimuon_w", snap_name, branchlist)
 
     logger.info("\nReport of all cuts:\n")
@@ -201,7 +199,7 @@ def mass_eta(rdf_all, rap_lim, pt_lim = (0,120), infile=None):
     """
 
     # RDataFrame with appropriate cuts is created.
-    if infile == None:
+    if infile is None:
         rdf_m=rdf_all.\
             Filter(f"abs(Dimuon_y)<{rap_lim[1]} && abs(Dimuon_y)>{rap_lim[0]}",\
                     "Cut on rapidity").\
@@ -261,7 +259,7 @@ def cos_eta(rdf_all, rap_lim, pt_lim=(0,120), infile=None):
     """
 
     # RDataFrame with appropriate cuts is created.
-    if infile == None:
+    if infile is None:
         rdf_m=rdf_all.\
             Filter(f"abs(Dimuon_y)<{rap_lim[1]} && abs(Dimuon_y)>{rap_lim[0]}",\
                     "Cut on rapidity").\
@@ -282,7 +280,7 @@ def cos_eta(rdf_all, rap_lim, pt_lim=(0,120), infile=None):
     # Booking histogram
     h = rdf_m.Histo1D(ROOT.RDF.TH1DModel("Cos in defined range rapidity",
         f"cos(#theta *) in y [{rap_lim[0]},{rap_lim[1]}];Cos;Events",40,-1,1),
-        f"Dimuon_cos")
+        "Dimuon_cos")
     logger.info(f" Drawing the cos(theta*) distribution for {rap_lim[0]}< "
                 f"|Dimuon rapidity| < {rap_lim[1]}")
 
@@ -343,11 +341,11 @@ def afb(rdf0, pt_lim):
                 rdf_m = rdf_y.Filter(f"Dimuon_mass>{m_lim[0]} && "
                     f"Dimuon_mass<{m_lim[1]}")
 
-                rdf_f = rdf_m.Filter(f"Dimuon_cos>0")
+                rdf_f = rdf_m.Filter("Dimuon_cos>0")
                 D_f = rdf_f.Sum("w_d")
                 N_f = rdf_f.Sum("w_n")
 
-                rdf_b = rdf_m.Filter(f"Dimuon_cos<0")
+                rdf_b = rdf_m.Filter("Dimuon_cos<0")
                 D_b = rdf_b.Sum("w_d")
                 N_b = rdf_b.Sum("w_n")
 
@@ -496,7 +494,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     # Retrieve dataset from the web and start the selection on good events.
-    if args.analysis==True:
+    if args.analysis is True:
         root_files=ROOT.std.vector("string")() #allocare gli slot giusti?
         root_files.reserve(N_tot_files) ####????
         times = []
@@ -517,13 +515,13 @@ if __name__ == "__main__":
                 print(t, N_t, file=outf2)
 
         h_times = ROOT.TH1D("h_times", f"Times [n_threads set = {nthreads}];"
-            "t [s];Events", 10, 0, 200)
+            "t [s];Events", 100, 0, 200)
         for t, N_time in zip(times, N_times):
             h_times.Fill(t,N_time)
         c_times = ROOT.TCanvas("Times", "Times")
         h_times.Draw()
         c_times.SaveAs("times_vs_N.png")
-        logger.info(" Plot times saved.")
+        logger.debug(" Plot times saved.")
 
         # Create a RDataFrame with all the selected data.
         all_data = ROOT.RDataFrame("dimuon_w", root_files).Cache()
@@ -531,7 +529,7 @@ if __name__ == "__main__":
                     f"{all_data.Count().GetValue()}.")
         print(all_data.GetNSlots())
 
-    elif args.analysis==False:
+    elif args.analysis is False:
         root_files = ROOT.std.vector("string")()
         with open("Analyzed_files.txt") as inf:
             for line in inf:
@@ -551,11 +549,11 @@ if __name__ == "__main__":
         sys.exit(1)
 
     # Move the snapshots in a dedicated directory
-    if args.analysis==True:
+    if args.analysis is True:
         start_move = time.time()
         for f in root_files:
             os.replace(f'{os.getcwd()}/{f}', f'Snapshots/{f}')
-        logger.info(f" Time to move the files: {time.time()-start_move}")
+        logger.debug(f" Time to move the files: {time.time()-start_move}")
 
     # Plot the distributions of mass and cos(theta*) in six different range of
     # rapidity. "pt_lim" is a tuple to set the limits on transverse momentum.

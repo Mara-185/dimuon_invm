@@ -1,10 +1,10 @@
 """Tests on \tools.cpp\" module (C++ shared library)."""
 
-import ROOT
 import logging
 import unittest
 import os
 import sys
+import ROOT
 
 # Add my modules to the path
 root_utils = os.path.abspath('../Utils')
@@ -15,16 +15,6 @@ import utils
 #Import shared library to test
 #ROOT.gInterpreter.ProcessLine('#include "tools.h"')
 ROOT.gSystem.Load('../Utils/tools_cpp.so')
-
-
-
-# Con A0 calcolato
-# 0.05956152081489563
-#  0.15428729355335236
-
-# Con A0 = 0.1
-# 0.05996
-# 0.154978
 
 
 def create_example():
@@ -97,7 +87,7 @@ class Z_asymmetryTest(unittest.TestCase):
 if __name__ == "__main__":
 
     # Create logger
-    logger = utils.set_logger("Unit test")
+    logger = utils.set_logger("Unit test", logging.DEBUG)
     logger.info("Starting the tests...")
 
     # Start all tests

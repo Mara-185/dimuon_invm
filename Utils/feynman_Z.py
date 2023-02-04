@@ -8,7 +8,7 @@ if __name__ == "__main__":
     c = ROOT.TCanvas("Feynman diagram", "Feynman diagram")#, 10, 10, 600, 300)
     c.Range(0, 0, 120,60)
     lin = ROOT.gStyle.GetLineWidth()
-    ROOT.gStyle.SetLineWidth(3);
+    ROOT.gStyle.SetLineWidth(3)
 
     label = ROOT.TLatex()
     label.SetTextAlign(22)
@@ -27,7 +27,7 @@ if __name__ == "__main__":
     gZ = ROOT.TCurlyLine(35, 30, 80, 30)
     gZ.SetWavy()
     gZ.Draw()
-    label.DrawLatex(57,37.7,"#gamma/Z_{0}");
+    label.DrawLatex(57,37.7,"#gamma/Z_{0}")
 
     # Muons lines
     line3 = ROOT.TLine(80, 30, 100, 10)

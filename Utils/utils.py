@@ -13,6 +13,7 @@ def set_logger(name, log_level):
     :type name: string, required
     :param log_level: level to set the logger
     :type log_level: e.g. "logging.DEBUG", required
+    :return: logger
 
     """
 
