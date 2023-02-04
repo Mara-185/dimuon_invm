@@ -109,7 +109,7 @@ def z_main(url, iteration, run):
     :return snap_name: name of the root file created
     :rtype snap_name: string
     :return N_ev: number of all events in the file
-    :return N_Ev: float
+    :rtype N_ev: float
 
     """
 
