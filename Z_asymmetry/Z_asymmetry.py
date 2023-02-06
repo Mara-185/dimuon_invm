@@ -157,8 +157,7 @@ def z_main(url, iteration, run):
              Mu_pt[1], Mu_eta[1], Mu_phi[1], Mu_mass[1])[1]").\
         Filter("Dimuon_mass>60 && Dimuon_mass<120","Cut on Z resonance").\
         Define("w_d", "weights(Dimuon_pt,Dimuon_mass, Dimuon_cos)[0]").\
-        Define("w_n", "weights(Dimuon_pt,Dimuon_mass, Dimuon_cos)[1]")#.\
-        #Snapshot("dimuon_w", snap_name, branchlist)
+        Define("w_n", "weights(Dimuon_pt,Dimuon_mass, Dimuon_cos)[1]")
 
     logger.info("\nReport of all cuts:\n")
     rdf_cut.Report().Print()

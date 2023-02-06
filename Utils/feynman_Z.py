@@ -1,5 +1,5 @@
 """Feynman diagram showing production of Z boson from the interaction of a quark
-    and an antiquark, and its decay in two muons of opposit charge."""
+    and an antiquark, and its decay in two muons of opposite charge."""
 
 import ROOT
 

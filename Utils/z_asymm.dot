@@ -1,0 +1,60 @@
+digraph {
+  28 [label="Snapshot", style="filled", fillcolor="#83EA29", shape="box"];
+  27 [label="Define
+  w_n", style="filled", fillcolor="#60aef3", shape="oval"];
+  26 [label="Define
+  w_d", style="filled", fillcolor="#60aef3", shape="oval"];
+  25 [label="Cut on Z resonance", style="filled", fillcolor="#FAAC58", shape="diamond"];
+	23 [label="Define
+Dimuon_y", style="filled", fillcolor="#60aef3", shape="oval"];
+	21 [label="Define
+Dimuon_cos", style="filled", fillcolor="#60aef3", shape="oval"];
+	19 [label="Define
+Dimuon_phi", style="filled", fillcolor="#60aef3", shape="oval"];
+	17 [label="Define
+Dimuon_eta", style="filled", fillcolor="#60aef3", shape="oval"];
+	15 [label="Define
+Dimuon_pt", style="filled", fillcolor="#60aef3", shape="oval"];
+	13 [label="Define
+Dimuon_mass", style="filled", fillcolor="#60aef3", shape="oval"];
+	12 [label="Selection on muons with opposite charge", style="filled", fillcolor="#FAAC58", shape="diamond"];
+	11 [label="Trigger on the leading and the next leading muons", style="filled", fillcolor="#FAAC58", shape="diamond"];
+	3 [label="Events with at least two muons left", style="filled", fillcolor="#FAAC58", shape="diamond"];
+	4 [label="Define
+Mu_eta", style="filled", fillcolor="#60aef3", shape="oval"];
+	5 [label="Define
+Mu_phi", style="filled", fillcolor="#60aef3", shape="oval"];
+	6 [label="Define
+Mu_charge", style="filled", fillcolor="#60aef3", shape="oval"];
+	7 [label="Define
+Mu_mass", style="filled", fillcolor="#60aef3", shape="oval"];
+	8 [label="Define
+Mu_pterr", style="filled", fillcolor="#60aef3", shape="oval"];
+	9 [label="Define
+Mu_pt", style="filled", fillcolor="#60aef3", shape="oval"];
+	10 [label="Define
+mask", style="filled", fillcolor="#60aef3", shape="oval"];
+	2 [label="Selection on events with at least two muons", style="filled", fillcolor="#FAAC58", shape="diamond"];
+	0 [label="Events", style="filled", fillcolor="#e8f8fc", shape="oval"];
+  27 -> 28;
+  26 -> 27;
+  25 -> 26;
+  23 -> 25;
+  21 -> 23;
+	19 -> 21;
+	17 -> 19;
+	15 -> 17;
+	13 -> 15;
+	12 -> 13;
+	11 -> 12;
+  3 -> 11;
+	4 -> 3;
+	5 -> 4;
+	6 -> 5;
+	7 -> 6;
+	8 -> 7;
+	9 -> 8;
+	10 -> 9;
+	2 -> 10;
+	0 -> 2;
+}

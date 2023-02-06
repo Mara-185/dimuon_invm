@@ -1,0 +1,21 @@
+digraph {
+  13 [label="Snapshot", style="filled", fillcolor="#83EA29", shape="box"];
+  11 [label="Define
+  Dimuon_phi", style="filled", fillcolor="#60aef3", shape="oval"];
+  9 [label="Define
+  Dimuon_eta", style="filled", fillcolor="#60aef3", shape="oval"];
+  7 [label="Define
+  Dimuon_pt", style="filled", fillcolor="#60aef3", shape="oval"];
+  5 [label="Define
+  Dimuon_mass", style="filled", fillcolor="#60aef3", shape="oval"];
+	3 [label="Selection of muons with opposite charge", style="filled", fillcolor="#FAAC58", shape="diamond"];
+	2 [label="Selection of two muons", style="filled", fillcolor="#FAAC58", shape="diamond"];
+	0 [label="Events", style="filled", fillcolor="#e8f8fc", shape="oval"];
+  11 -> 13;
+  9 -> 11;
+  7 -> 9;
+  5 -> 7;
+  3 -> 5;
+	2 -> 3;
+	0 -> 2;
+}

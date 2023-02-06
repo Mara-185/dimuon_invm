@@ -82,32 +82,23 @@ def leptons_analysis(url, outfile):
                      Muon_pt[1], Muon_eta[1], Muon_phi[1], Muon_mass[1])[1]").\
                 Define("Dimuon_phi",\
                     "dilepton_vec(Muon_pt[0], Muon_eta[0], Muon_phi[0], Muon_mass[0], \
-                     Muon_pt[1], Muon_eta[1], Muon_phi[1], Muon_mass[1])[2]").\
-                Define("Dimuon_cos",\
-                    "cos_rapidity(Muon_pt[0], Muon_eta[0], Muon_phi[0], Muon_mass[0], \
-                     Muon_pt[1], Muon_eta[1], Muon_phi[1], Muon_mass[1])[0]").\
-                Define("Dimuon_y",\
-                    "cos_rapidity(Muon_pt[0], Muon_eta[0], Muon_phi[0], Muon_mass[0], \
-                     Muon_pt[1], Muon_eta[1], Muon_phi[1], Muon_mass[1])[1]")
+                     Muon_pt[1], Muon_eta[1], Muon_phi[1], Muon_mass[1])[2]")
 
     # Print cutflows
     logger.info("CutFlow muons:")
     rdf_mu.Report().Print()
     print(f"Nslots: {rdf_mu.GetNSlots()}")
 
-    # Save Node Graph
-    ROOT.RDF.SaveGraph(rdf_mu, "rdf_mu.dot")
-
     # List with the names of the new columns to make a snapshot of them
-    branchlist_mu = ["Dimuon_mass", "Dimuon_pt", "Dimuon_eta", "Dimuon_phi", \
-        "Dimuon_cos", "Dimuon_y"]
+    branchlist_mu = ["Dimuon_mass", "Dimuon_pt", "Dimuon_eta", "Dimuon_phi"]
 
     # A snapshot is done to collect the useful physiscal quantity of the dimuons
-    # in a single root file. Data are also cached in memory.
+    # in a single root file. Data are also cached in memory and a node Graph
+    # is saved.
+    ROOT.RDF.SaveGraph(rdf_mu, "rdf_mu.dot")
     logger.debug("Starting snapshots...")
     tree = outfile_m.replace(".root", "")
-    dimu_cache = rdf_mu.Snapshot(tree, outfile, branchlist_mu).\
-        Cache()
+    dimu_cache = rdf_mu.Snapshot(tree, outfile, branchlist_mu).Cache()
     logger.info("The snapshot is done and data are cached.")
 
     # Close the file and return data cached.
@@ -137,27 +128,27 @@ def mumu_spectrum(infile, mu_cached=None, bump=False):
         rdf = ROOT.RDataFrame(t_name,infile)
         if bump is False:
             rdf = rdf.Filter("Dimuon_pt>20")
-        h = rdf.Histo1D(ROOT.RDF.TH1DModel("Dimuon mass", "Dimuon mass",
+        h_mu = rdf.Histo1D(ROOT.RDF.TH1DModel("Dimuon mass", "Dimuon mass",
             50000, 0.3, 200), "Dimuon_mass")
     else:
         if bump is False:
             mu_cached = mu_cached.Filter("Dimuon_pt>20")
-        h = mu_cached.Filter("Dimuon_pt>20").Histo1D(
-            ROOT.RDF.TH1DModel("Dimuon mass", "Dimuon mass", 50000, 0.3, 200),
-            "Dimuon_mass")
+        h_mu = mu_cached.Histo1D(ROOT.RDF.TH1DModel("Dimuon mass", "Dimuon mass",
+            50000, 0.3, 200), "Dimuon_mass")
 
     # Styling
     ROOT.gStyle.SetOptStat("e")
-    c = ROOT.TCanvas("dimuon spectrum", "#mu^{+}#mu^{-} invariant mass")
-    c.SetLogx()
-    c.SetLogy()
-    h.GetXaxis().SetTitle("m_{#mu^{+}#mu^{-}} [GeV]")
-    h.GetXaxis().SetTitleSize(0.04)
-    h.GetXaxis().CenterTitle()
-    h.GetYaxis().SetTitle("Events")
-    h.GetYaxis().SetTitleSize(0.04)
-    h.GetYaxis().CenterTitle()
-    h.Draw()
+    c_mu = ROOT.TCanvas("dimuon spectrum", "#mu^{+}#mu^{-} invariant mass")
+    c_mu.SetLogx()
+    c_mu.SetLogy()
+    h_mu.GetXaxis().SetTitle("m_{#mu^{+}#mu^{-}} [GeV]")
+    h_mu.GetXaxis().SetTitleSize(0.04)
+    h_mu.GetXaxis().CenterTitle()
+    h_mu.GetYaxis().SetTitle("Events")
+    h_mu.GetYaxis().SetTitleSize(0.04)
+    h_mu.GetYaxis().CenterTitle()
+    h_mu.SetLineColor(601)
+    h_mu.Draw()
 
     # Labels
     label = ROOT.TLatex()
@@ -172,12 +163,11 @@ def mumu_spectrum(infile, mu_cached=None, bump=False):
 
     # Save results in png in the folder "Spectra"
     os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Spectra')))
+    c_name = "dimuon_spectrum"
     if bump is False:
-        c.SaveAs("dimuon_spectrum.png")
-    else:
-        c.SaveAs("dimuon_spectrum_wo_bump.png")
+        c_name= "dimuon_spectrum_wo_bump"
 
-
+    c_mu.SaveAs(f"{c_name}.png")
     os.chdir(os.path.dirname(os. getcwd()))
     logger.info("The plot \"dimuon_spectrum.png\" has been created.")
 
@@ -194,35 +184,31 @@ def mumu_eta(infile, mu_cached=None):
     if mu_cached is None:
         t_name = infile.replace(".root", "")
         rdf = ROOT.RDataFrame(t_name,infile)
-        #rdf_m = rdf.Filter("Dimuon_pt>20")
-        h = rdf.Filter("Dimuon_pt>20").Histo1D(ROOT.RDF.TH1DModel(
-            "Dimuon eta", "Dimuon eta", 150, -4, 4), "Dimuon_eta")
-        del rdf
-
+        h_eta = rdf.Filter("Dimuon_pt>20").Histo1D(ROOT.RDF.TH1DModel(
+            "Dimuon eta", "Dimuon eta", 160, -4, 4), "Dimuon_eta")
     else:
-        #rdf_m = mu_cached.Filter("Dimuon_pt>20")
-        h = rdf.Filter("Dimuon_pt>20").Histo1D(ROOT.RDF.TH1DModel(
-            "Dimuon eta", "Dimuon eta", 150, -4, 4), "Dimuon_eta")
+        h_eta = mu_cached.Filter("Dimuon_pt>20").Histo1D(ROOT.RDF.TH1DModel(
+            "Dimuon eta", "Dimuon eta", 160, -4, 4), "Dimuon_eta")
 
     # Styling
     ROOT.gStyle.SetOptStat("e")
-    c = ROOT.TCanvas("dimuon spectrum", "#mu^{+}#mu^{-} pt")
-    c.SetGrid()
-    h.GetXaxis().SetTitle("#eta_{#mu^{+}#mu^{-}} [GeV]")
-    h.GetXaxis().SetTitleSize(0.04)
-    h.GetXaxis().CenterTitle()
-    h.GetYaxis().SetTitle("Events")
-    h.GetYaxis().SetTitleSize(0.04)
-    h.GetYaxis().SetTitleOffset(1.3)
-    h.GetYaxis().CenterTitle()
-    h.Draw()
+    c_eta = ROOT.TCanvas("dimuon spectrum", "#mu^{+}#mu^{-} pt")
+    c_eta.SetGrid()
+    h_eta.GetXaxis().SetTitle("#eta_{#mu^{+}#mu^{-}} [GeV]")
+    h_eta.GetXaxis().SetTitleSize(0.04)
+    h_eta.GetXaxis().CenterTitle()
+    h_eta.GetYaxis().SetTitle("Events")
+    h_eta.GetYaxis().SetTitleSize(0.04)
+    h_eta.GetYaxis().SetTitleOffset(1.3)
+    h_eta.GetYaxis().CenterTitle()
+    h_eta.SetFillColorAlpha(601, .8)
+    h_eta.Draw()
 
     # Save results in pdf and png in the folder "Spectra"
     os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Spectra')))
-    c.SaveAs("dimuon_eta.pdf")
-    c.SaveAs("dimuon_eta.png")
+    c_eta.SaveAs("dimuon_eta.png")
     os.chdir(os.path.dirname(os. getcwd()))
-    logger.info("The files \"dimuon_eta.***\"(pdf,png) have been created.")
+    logger.info("The files \"dimuon_eta.png\" has been created.")
 
 
 def resonance_fit(infile, particle, mu_cached=None):
@@ -259,8 +245,6 @@ def resonance_fit(infile, particle, mu_cached=None):
     low_edge_pt = 20
     upper_edge_pt = 100
     eta_edge = 1.2
-    # low_edge_eta = -1.2
-    # upper_edge_eta = 1.2
 
     error_flag=1
 
@@ -408,7 +392,7 @@ def resonance_fit(infile, particle, mu_cached=None):
         mframe.GetXaxis().CenterTitle()
         mframe.GetYaxis().CenterTitle()
 
-        c = ROOT.TCanvas(f"{name} Resonance", f"{name} Resonance")
+        c_fit = ROOT.TCanvas(f"{name} Resonance", f"{name} Resonance")
 
         # Retrieve the Chi Square
         chi = mframe.chiSquare("Model","Data", ndf)
@@ -476,7 +460,7 @@ def resonance_fit(infile, particle, mu_cached=None):
 
         #Save results in the directory "Fit"
         os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Fit')))
-        c.SaveAs(f"{particle}_fit.png")
+        c_fit.SaveAs(f"{particle}_fit.png")
         utils.write_fitresults(results, f"res_{particle}.txt")
 
         # Return in main directory
@@ -550,9 +534,9 @@ def resonance_prop(infile, mu_cached=None, particle="all"):
 
         # Styling
         name = utils.FIT_INIT_PARAM[f"{particle}"][6]
-        c = ROOT.TCanvas()
-        c.UseCurrentStyle()
-        c.SetGrid()
+        c_prop = ROOT.TCanvas()
+        c_prop.UseCurrentStyle()
+        c_prop.SetGrid()
         ROOT.gStyle.SetOptStat("e")
 
         eta_lim=3.5
@@ -587,16 +571,16 @@ def resonance_prop(infile, mu_cached=None, particle="all"):
                     h.GetXaxis().CenterTitle()
                     h.GetYaxis().CenterTitle()
                     h.GetXaxis().SetTitleSize(0.04)
-                    h.SetFillColorAlpha(9, .8)
+                    h.SetFillColorAlpha(601, .8)
                     if j==0:
                         os.chdir(os.path.abspath(os.path.join(os.sep,
                             f'{os.getcwd()}', 'Properties')))
-                        c.Print(f"Y({i}S) properties.pdf[", "pdf")
+                        c_prop.Print(f"Y({i}S) properties.pdf[", "pdf")
                     logger.debug(f"Iteration on histograms number {j}")
                     h.Draw()
-                    c.Print(f"Y({i}S) properties.pdf", f"Title:Y({i}S) {k}")
-                    c.SaveAs(f"Y({i}S) {k}.png")
-                c.Print(f"Y({i}S) properties.pdf]", "pdf")
+                    c_prop.Print(f"Y({i}S) properties.pdf", f"Title:Y({i}S) {k}")
+                    c_prop.SaveAs(f"Y({i}S) {k}.png")
+                c_prop.Print(f"Y({i}S) properties.pdf]", "pdf")
 
                 # Return in main directory
                 os.chdir(os.path.dirname(os. getcwd()))
@@ -625,15 +609,15 @@ def resonance_prop(infile, mu_cached=None, particle="all"):
                 h.GetXaxis().CenterTitle()
                 h.GetYaxis().CenterTitle()
                 h.GetXaxis().SetTitleSize(0.04)
-                h.SetFillColorAlpha(9, .8)
+                h.SetFillColorAlpha(601, .8)
                 if j==0:
                     os.chdir(os.path.abspath(os.path.join(os.sep,
                         f'{os.getcwd()}','Properties')))
-                    c.Print(f"{particle} properties.pdf[", "pdf")
+                    c_prop.Print(f"{particle} properties.pdf[", "pdf")
                 h.Draw()
-                c.Print(f"{particle} properties.pdf", f"Title:{particle} {k}")
-                c.SaveAs(f"{particle} {k}.png")
-            c.Print(f"{particle} properties.pdf]", "pdf")
+                c_prop.Print(f"{particle} properties.pdf", f"Title:{particle} {k}")
+                c_prop.SaveAs(f"{particle} {k}.png")
+            c_prop.Print(f"{particle} properties.pdf]", "pdf")
 
             # Return in main directory
             os.chdir(os.path.dirname(os. getcwd()))
@@ -669,7 +653,6 @@ if __name__ == "__main__":
     # Start the the timer
     start = time.time()
     start_cpu = time.process_time()
-    print(start, start_cpu)
 
     # Creating the parser
     parser = argparse.ArgumentParser(description =
@@ -727,7 +710,7 @@ if __name__ == "__main__":
     # DIMUON MASS SPECTRUM
     os.makedirs("Spectra", exist_ok=True)
     logger.debug("The new directory \"Spectra\" is created")
-    mumu_spectrum(outfile_m, dimu_cached)
+    mumu_spectrum(outfile_m, dimu_cached, True)
 
 
     # # DIMUON ETA DISTRIBUTION
@@ -738,14 +721,14 @@ if __name__ == "__main__":
     # RESONANCE'S FIT
     os.makedirs("Fit", exist_ok=True)
     logger.debug("The new directory \"Fit\" is created")
-    for p in args.particle:
-        resonance_fit(outfile_m, p)
+    # for p in args.particle:
+    #     resonance_fit(outfile_m, p)
 
     # # PROPERTIES
     os.makedirs("Properties", exist_ok=True)
     logger.debug("The new directory \"Properties\" is created")
-    for p in args.particle:
-        resonance_prop(outfile_m, dimu_cached, p)
+    # for p in args.particle:
+    #     resonance_prop(outfile_m, dimu_cached, p)
 
     # Elapsed time
     logger.info(f" Elapsed time from the beginning is:"
