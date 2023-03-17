@@ -181,7 +181,7 @@ def cos_eta(rdf_all_c, data_type, pt_lim=(0,120), infile=None):
     Plot the cos of Z resonance (mass range from 60 GeV to 120 GeV), in the six
     different range of rapidity. It also make a cut on pt.
     Plot is saved as "Dimuon_cos[y(rap_inf,rap_sup),pt(pt_inf,pt_sup)]_*dtype.png"
-    in a directory named "Z analysis".
+    in a directory named "Plot".
     It also creates a root file containg all histograms, named \"hcos_*dtype.root\",
     useful for further comparison between Monte Carlo and data.
     Data can be passed as RDataFrame or as root file, but in the last case the
@@ -218,8 +218,8 @@ def cos_eta(rdf_all_c, data_type, pt_lim=(0,120), infile=None):
     ROOT.gStyle.SetOptStat("e")
     c_cos = ROOT.TCanvas("cos", "cos")
 
-    # Change directory to save results in "Z analysis"
-    os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}','Z analysis')))
+    # Change directory to save results in "Plot"
+    os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}','Plot')))
     file_cos = ROOT.TFile(f"hcos_{data_type}.root", "recreate")
     # Drawing histograms for each rapidity bin
     for i in range(0, 6, 1):
@@ -248,7 +248,7 @@ def mass_eta(rdf_all_m, data_type, pt_lim = (0,120), infile=None):
     Plot the Z resonance (mass range from 60 GeV to 120 GeV), in the six
     different range of rapidity. It also make a cut on pt.
     Plot is saved as "Dimuon_mass[y(rap_inf,rap_sup),pt(pt_inf,pt_sup)]_*dtype.png"
-    in a directory named "Z analysis".
+    in a directory named "Plot".
     It also creates a root file containg all histograms, named \"hmass_*dtype.root\",
     useful for further comparison between Monte Carlo and data.
     Data can be passed as RDataFrame or as root file, but in the last case the
@@ -285,8 +285,8 @@ def mass_eta(rdf_all_m, data_type, pt_lim = (0,120), infile=None):
     ROOT.gStyle.SetOptStat("e")
     c_mass = ROOT.TCanvas("mass", "mass")
 
-    # Change directory to save results in "Z analysis"
-    os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}','Z analysis')))
+    # Change directory to save results in "Plot"
+    os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}','Plot')))
     file_mass = ROOT.TFile(f"hmass_{data_type}.root", "recreate")
     # Drawing histograms for each rapidity bin
     for i in range(0, 6, 1):
@@ -623,9 +623,9 @@ if __name__ == "__main__":
                 " of the Z resonance.")
 
     # A new folder to collect plots and data is created
-    os.makedirs("Z analysis", exist_ok=True)
+    os.makedirs("Plot", exist_ok=True)
     os.makedirs("Snapshots", exist_ok=True)
-    logger.debug(" The new directories \"Z analysis\" and \"Snapshots\" are created.")
+    logger.debug(" The new directories \"Plot\" and \"Snapshots\" are created.")
 
     # Enable the multi-threading analysis
     nthreads = 8
@@ -712,7 +712,7 @@ if __name__ == "__main__":
 
     # Compute AFB (Forward_Backward Asymmetry) and plot results
     logger.info(" Computing Forward-Backward asymmetry...")
-    os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Z analysis')))
+    os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Plot')))
     afb(all_data, data_type, pt_lim)
 
     # Comparison
