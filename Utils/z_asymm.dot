@@ -17,10 +17,10 @@ Dimuon_eta", style="filled", fillcolor="#60aef3", shape="oval"];
 Dimuon_pt", style="filled", fillcolor="#60aef3", shape="oval"];
 	13 [label="Define
 Dimuon_mass", style="filled", fillcolor="#60aef3", shape="oval"];
-	12 [label="Selection on muons with opposite charge", style="filled", fillcolor="#FAAC58", shape="diamond"];
-	11 [label="Trigger on the leading and the next leading muons", style="filled", fillcolor="#FAAC58", shape="diamond"];
+	12 [label="Selection of muons with opposite charge", style="filled", fillcolor="#FAAC58", shape="diamond"];
+	11 [label="Trigger on pt of the leading and the next leading muons", style="filled", fillcolor="#FAAC58", shape="diamond"];
 	3 [label="Events with at least two muons left", style="filled", fillcolor="#FAAC58", shape="diamond"];
-	4 [label="Define
+	8 [label="Define
 Mu_eta", style="filled", fillcolor="#60aef3", shape="oval"];
 	5 [label="Define
 Mu_phi", style="filled", fillcolor="#60aef3", shape="oval"];
@@ -28,8 +28,6 @@ Mu_phi", style="filled", fillcolor="#60aef3", shape="oval"];
 Mu_charge", style="filled", fillcolor="#60aef3", shape="oval"];
 	7 [label="Define
 Mu_mass", style="filled", fillcolor="#60aef3", shape="oval"];
-	8 [label="Define
-Mu_pterr", style="filled", fillcolor="#60aef3", shape="oval"];
 	9 [label="Define
 Mu_pt", style="filled", fillcolor="#60aef3", shape="oval"];
 	10 [label="Define
@@ -48,8 +46,7 @@ mask", style="filled", fillcolor="#60aef3", shape="oval"];
 	12 -> 13;
 	11 -> 12;
   3 -> 11;
-	4 -> 3;
-	5 -> 4;
+	5 -> 3;
 	6 -> 5;
 	7 -> 6;
 	8 -> 7;

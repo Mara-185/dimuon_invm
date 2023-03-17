@@ -40,7 +40,11 @@ def create_example():
     mass.emplace_back(0.1056580)
     mass.emplace_back(0.1056580)
 
-    return pt, eta, phi, mass
+    charge = ROOT.std.vector("int")()
+    charge.emplace_back(+1)
+    charge.emplace_back(-1)
+
+    return pt, eta, phi, mass, charge
 
 
 class Z_asymmetryTest(unittest.TestCase):
@@ -50,7 +54,7 @@ class Z_asymmetryTest(unittest.TestCase):
         """Test on \"dilepton_vec\" function."""
 
         logger.info("Test on \"dilepton_vec\" function...")
-        pt, eta, phi, mass = create_example()
+        pt, eta, phi, mass, charge = create_example()
         dilepton = ROOT.dilepton_vec(pt[0], eta[0], phi[0], mass[0], pt[1], \
             eta[1], phi[1], mass[1])
         self.assertAlmostEqual(dilepton[0], 34.4752, 4)
@@ -63,10 +67,10 @@ class Z_asymmetryTest(unittest.TestCase):
         """Test on \"cos_rapidity\" function."""
 
         logger.info("Test on \"cos_rapidity\" function...")
-        pt, eta, phi, mass = create_example()
-        cos_rap = ROOT.cos_rapidity(pt[0], eta[0], phi[0], mass[0], pt[1], \
+        pt, eta, phi, mass, charge = create_example()
+        cos_rap = ROOT.cos_rapidity(pt[0], eta[0], phi[0], mass[0], charge[0], pt[1], \
             eta[1], phi[1], mass[1])
-        self.assertAlmostEqual(cos_rap[0], 0.48296, 5)
+        self.assertAlmostEqual(cos_rap[0], -0.48296, 5)
         self.assertAlmostEqual(cos_rap[1], 1.82757, 5)
 
 
@@ -74,10 +78,10 @@ class Z_asymmetryTest(unittest.TestCase):
         """Test on \"weights\" function."""
 
         logger.info("Test on \"weights\" function...")
-        pt, eta, phi, mass = create_example()
+        pt, eta, phi, mass, charge = create_example()
         dilepton = ROOT.dilepton_vec(pt[0], eta[0], phi[0], mass[0], pt[1], \
             eta[1], phi[1], mass[1])
-        cos_rap = ROOT.cos_rapidity(pt[0], eta[0], phi[0], mass[0], pt[1], \
+        cos_rap = ROOT.cos_rapidity(pt[0], eta[0], phi[0], mass[0], charge[0], pt[1], \
             eta[1], phi[1], mass[1])
         weights = ROOT.weights(dilepton[0], dilepton[3], cos_rap[0])
         self.assertAlmostEqual(weights[0], 0.05956, 5)

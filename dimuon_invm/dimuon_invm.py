@@ -1,25 +1,26 @@
 """
-The script takes as argument:
+Analysis of the dimuon invariant mass spectrum.
+The script takes as arguments:
 
     - the data file (URL) of dileptons (-f), for example: "root:
         //eospublic.cern.ch//eos/root-eos/cms_opendata_2012_nanoaod/
-        Run2012B_DoubleMuParked.root";
+        Run2012B_DoubleMuParked.root"; [REQUIRED]
     - the string of the particle's name (-p) to analyze and fit, among those
         in the dimuon spectrum, which are :
         "eta", "rho","omega", "phi", "J-psi", "psi'", "Y", "Z".
         Better put the string in quotes, because for example for the "psi'" the
-        " ' " character gives some troubles.
+        " ' " character gives some troubles. Default value is \"all\", so it
+        returns fit and properties of all resonances.
 
 There are different functions for the main analysis, among which:
 
-    - "leptons_analysis" which selects the couple of muons and electrons which
-        are interesting in order to create the dimuon mass spectrum and for
-        further analysis;
-    - "mumu_spectrum" which plot the dimuon mass spectrum.
-    - "resonance_fit" solves every resonance and returns the plot with the fit
-        and a txt with the fit results.
+    - "leptons_analysis" which selects the couple of muons which are interesting
+        in order to plot the dimuon mass spectrum and for further analysis;
+    - "mumu_spectrum" which plot the dimuon mass spectrum;
+    - "resonance_fit" solves every resonance and returns the plot with the
+        fitted mass and a txt with the results;
     - "resonance_prop" creates different plots of the main characteristics of
-        the particle chosen in the spectrum;
+        the particle chosen in the spectrum.
 
 In the analysis the following version have been used:
 
@@ -40,12 +41,11 @@ import time
 import ROOT
 
 # Add my modules to the path
-root_utils = os.path.abspath('../Utils')
-sys.path.insert(0, root_utils)
+sys.path.insert(0, os.path.abspath('../Utils'))
 import utils
 
 
-def leptons_analysis(url, outfile):
+def leptons_analysis(url, outfile, snap=True):
     """
     It takes in input a nano-AOD data file and creates a root files, named:
     "dimuon.root" with four useful columns for further analysis:
@@ -63,42 +63,40 @@ def leptons_analysis(url, outfile):
 
     # Create an RDataFrame from the root file.
     root_file = ROOT.TFile.Open(url, "READ")
-    tree_name = root_file.GetListOfKeys().At(0).GetName()
-    rdf = ROOT.RDataFrame(tree_name, root_file)
-    logger.debug("The RDataFrame have been created.")
+    tree_in = root_file.GetListOfKeys().At(0).GetName()
+    rdf = ROOT.RDataFrame(tree_in, root_file)
+    logger.debug("The RDataFrame have been created.\n")
 
-    # Filter two muons and two electrons with opposite charge
-    rdf_mu =rdf.Filter("nMuon==2","Selection of two muons").\
-                Filter("Muon_charge[0]!=Muon_charge[1]",\
-                        "Selection of muons with opposite charge").\
-                Define("Dimuon_mass", \
-                    "dilepton_vec(Muon_pt[0], Muon_eta[0], Muon_phi[0], Muon_mass[0], \
-                     Muon_pt[1], Muon_eta[1], Muon_phi[1], Muon_mass[1])[3]").\
-                Define("Dimuon_pt",\
-                    "dilepton_vec(Muon_pt[0], Muon_eta[0], Muon_phi[0], Muon_mass[0], \
-                     Muon_pt[1], Muon_eta[1], Muon_phi[1], Muon_mass[1])[0]").\
-                Define("Dimuon_eta", \
-                    "dilepton_vec(Muon_pt[0], Muon_eta[0], Muon_phi[0], Muon_mass[0], \
-                     Muon_pt[1], Muon_eta[1], Muon_phi[1], Muon_mass[1])[1]").\
-                Define("Dimuon_phi",\
-                    "dilepton_vec(Muon_pt[0], Muon_eta[0], Muon_phi[0], Muon_mass[0], \
-                     Muon_pt[1], Muon_eta[1], Muon_phi[1], Muon_mass[1])[2]")
+    # Filter two muons with opposite charge
+    rdf_mu = rdf.Filter("nMuon>1 && Muon_charge[0]!=Muon_charge[1]",
+                "Selection of two muons with opposite charge").\
+            Define("Dimuon_mass", \
+                "dilepton_vec(Muon_pt[0], Muon_eta[0], Muon_phi[0], Muon_mass[0], \
+                 Muon_pt[1], Muon_eta[1], Muon_phi[1], Muon_mass[1])[3]").\
+            Define("Dimuon_pt",\
+                "dilepton_vec(Muon_pt[0], Muon_eta[0], Muon_phi[0], Muon_mass[0], \
+                 Muon_pt[1], Muon_eta[1], Muon_phi[1], Muon_mass[1])[0]").\
+            Define("Dimuon_eta", \
+                "dilepton_vec(Muon_pt[0], Muon_eta[0], Muon_phi[0], Muon_mass[0], \
+                 Muon_pt[1], Muon_eta[1], Muon_phi[1], Muon_mass[1])[1]").\
+            Define("Dimuon_phi",\
+                "dilepton_vec(Muon_pt[0], Muon_eta[0], Muon_phi[0], Muon_mass[0], \
+                 Muon_pt[1], Muon_eta[1], Muon_phi[1], Muon_mass[1])[2]")
 
     # Print cutflows
     logger.info("CutFlow muons:")
     rdf_mu.Report().Print()
-    print(f"Nslots: {rdf_mu.GetNSlots()}")
 
-    # List with the names of the new columns to make a snapshot of them
+    # List with the names of the new columns to make a snapshot or to cache
     branchlist_mu = ["Dimuon_mass", "Dimuon_pt", "Dimuon_eta", "Dimuon_phi"]
 
     # A snapshot is done to collect the useful physiscal quantity of the dimuons
     # in a single root file. Data are also cached in memory and a node Graph
     # is saved.
     ROOT.RDF.SaveGraph(rdf_mu, "rdf_mu.dot")
+    tree_out = outfile.replace(".root", "")
     logger.debug("Starting snapshots...")
-    tree = outfile_m.replace(".root", "")
-    dimu_cache = rdf_mu.Snapshot(tree, outfile, branchlist_mu).Cache()
+    dimu_cache = rdf_mu.Snapshot(tree_out, outfile, branchlist_mu).Cache()
     logger.info("The snapshot is done and data are cached.")
 
     # Close the file and return data cached.
@@ -172,11 +170,66 @@ def mumu_spectrum(infile, mu_cached=None, bump=False):
     logger.info("The plot \"dimuon_spectrum.png\" has been created.")
 
 
+def mumu_spectrum2(infile, mu_cached=None):
+    """
+    It takes in input the root data file or the data cached, obtained by the
+    function "leptons_analysis" and plot the histogram of the dimuons invariant
+    mass.
+
+    :param infile: name of data root file
+    :type infile: string, required
+    :param mu_cached: data cached in memory
+    :type mu_cached: RDataFrame, NOT REQUIRED, default=False
+
+    """
+
+    # Histogram of dimuons mass
+    if mu_cached is None:
+        t_name = infile.replace(".root", "")
+        rdf = ROOT.RDataFrame(t_name,infile)
+        h_mu = rdf.Histo1D(ROOT.RDF.TH1DModel("Dimuon mass", "Dimuon mass",
+            50000, 0.3, 200), "Dimuon_mass")
+    else:
+        h_mu = mu_cached.Histo1D(ROOT.RDF.TH1DModel("Dimuon mass", "Dimuon mass",
+            50000, 0.3, 200), "Dimuon_mass")
+
+    # Styling
+    ROOT.gStyle.SetOptStat("e")
+    c_mu = ROOT.TCanvas("dimuon spectrum", "#mu^{+}#mu^{-} invariant mass")
+    c_mu.SetLogx()
+    c_mu.SetLogy()
+    h_mu.GetXaxis().SetTitle("m_{#mu^{+}#mu^{-}} [GeV]")
+    h_mu.GetXaxis().SetTitleSize(0.04)
+    h_mu.GetXaxis().CenterTitle()
+    h_mu.GetYaxis().SetTitle("Events")
+    h_mu.GetYaxis().SetTitleSize(0.04)
+    h_mu.GetYaxis().CenterTitle()
+    h_mu.SetLineColor(601)
+    h_mu.Draw()
+
+    # Labels
+    label = ROOT.TLatex()
+    label.SetNDC(True)
+    label.DrawLatex(0.165, 0.720, "#eta")
+    label.DrawLatex(0.190, 0.772, "#rho,#omega")
+    label.DrawLatex(0.245, 0.775, "#phi")
+    label.DrawLatex(0.400, 0.850, "J/#psi")
+    label.DrawLatex(0.410, 0.700, "#psi'")
+    label.DrawLatex(0.485, 0.700, "Y(1, 2, 3S)")
+    label.DrawLatex(0.795, 0.680, "Z")
+
+    # Save results in png in the folder "Spectra"
+    os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Spectra')))
+    c_mu.SaveAs("dimuon_spectrum.png")
+    os.chdir(os.path.dirname(os. getcwd()))
+    logger.info("The plot \"dimuon_spectrum.png\" has been created.")
+
+
 def mumu_eta(infile, mu_cached=None):
     """
     It takes in input the root data file or the data cached obtained by the
     function "leptons_analysis" and plot the histogram of the dimuons
-    pseudorapidity.
+    pseudorapidity, named \"dimuon_eta.png\".
 
     """
 
@@ -211,7 +264,7 @@ def mumu_eta(infile, mu_cached=None):
     logger.info("The files \"dimuon_eta.png\" has been created.")
 
 
-def resonance_fit(infile, particle, mu_cached=None):
+def resonance_fit(infile, particle="all", mu_cached=None):
     """
     It takes in input the root data file obtained with "leptons_analysis"
     and a string with the name of the resonance to fit. Possible arguments
@@ -232,6 +285,9 @@ def resonance_fit(infile, particle, mu_cached=None):
     # Start the timer
     start_fit = time.time()
 
+    if particle is None:
+        particle="all"
+
     # An auxiliary TTree from the root data file is created.
     if mu_cached is None:
         f = ROOT.TFile.Open(infile)
@@ -242,8 +298,8 @@ def resonance_fit(infile, particle, mu_cached=None):
         logger.debug("Devi aggiornare la versione di root a 6.26 e usare"
             "RooDataSetHelper")
 
-    low_edge_pt = 20
-    upper_edge_pt = 100
+    low_edge_pt = 0
+    upper_edge_pt = 120
     eta_edge = 1.2
 
     error_flag=1
@@ -273,7 +329,7 @@ def resonance_fit(infile, particle, mu_cached=None):
         logger.debug("No error flag")
 
         # Mass limits are defined in order to make a selection on data for each
-        # particle. The shapes of singal and background are choosed, too.
+        # particle. The shapes of signal and background are choosed, too.
         if particle=="Y":
             mean1 = utils.FIT_INIT_PARAM["Y1"][0]
             mean2 = utils.FIT_INIT_PARAM["Y2"][0]
@@ -351,15 +407,6 @@ def resonance_fit(infile, particle, mu_cached=None):
                 ROOT.RooArgList(sig1, sig2, sig3, bkgf),
                 ROOT.RooArgList(nsig1, nsig2, nsig3, nbkg))
         else:
-            # NEW
-            # eff = ROOT.RooRealVar("eff", "The efficiency", 0.20, 0.00001, 1.)
-            # lum = ROOT.RooRealVar("lum", "The luminosity", 2, 0.00001, 50, "pb-1")
-            # cross = ROOT.RooRealVar("cross", "The cross section", 3., 0., 40, "pb")
-            # nsig = ROOT.RooFormulaVar("N", "@0*@1*@2", ROOT.RooArgList(eff, lum, cross))
-            # eff.setConstant(1)
-            # lum.setConstant(1)
-
-            # OLD
             nsig = ROOT.RooRealVar("nsig", "signal events", num/5, 0, num)
             tot = ROOT.RooAddPdf("Model", "The total pdf",
                 ROOT.RooArgList(sigf, bkgf), ROOT.RooArgList(nsig, nbkg))
@@ -493,12 +540,14 @@ def resonance_prop(infile, mu_cached=None, particle="all"):
 
     error_flag = 1
 
+    if particle is None:
+        particle="all"
+
     # Rdataframe with useful cuts is created.
     if mu_cached is None:
         t_name = infile.replace(".root", "")
         rdf = ROOT.RDataFrame(t_name,infile)
         rdf_cut=rdf.Filter(f" Dimuon_pt>{pt_cut_inf} && Dimuon_pt<{pt_cut_sup}")
-        del rdf
     else:
         rdf_cut=mu_cached.Filter(f" Dimuon_pt>{pt_cut_inf} && Dimuon_pt<{pt_cut_sup}")
 
@@ -530,7 +579,6 @@ def resonance_prop(infile, mu_cached=None, particle="all"):
         upper_mass_edge = utils.PARTICLES_MASS_RANGE[f"{particle}"][1]
         rdf_m = rdf_cut.Filter(f" Dimuon_mass>={lower_mass_edge} \
             && Dimuon_mass<={upper_mass_edge}", f"{particle} cut")
-        del rdf_cut
 
         # Styling
         name = utils.FIT_INIT_PARAM[f"{particle}"][6]
@@ -652,7 +700,6 @@ if __name__ == "__main__":
 
     # Start the the timer
     start = time.time()
-    start_cpu = time.process_time()
 
     # Creating the parser
     parser = argparse.ArgumentParser(description =
@@ -667,7 +714,7 @@ if __name__ == "__main__":
     parser.add_argument("-no--a", "--analysis", required=False, action="store_false",
         default=True, help="If True, retrieve the data file from web and "
         "does the selection. Otherwise it uses the \"dimuon.root\" file, "
-        "created in a previous run of the script. Of corse in this case, it's "
+        "created in a previous run of the script. Of course in this case, it's "
         "needed to create the snapshot of the data before." )
     parser.add_argument("-o", "--outfile", required=False, type=str,
         help="if \"-no--aa\" is called to avoid the analysis, it's necessary"
@@ -684,10 +731,9 @@ if __name__ == "__main__":
     ROOT.gSystem.Load('../Utils/tools_cpp.so')
 
     # LEPTONS ANALYSIS
-
     # If "leptons_analysis" is not run (it already has been done), dimu_cached
     # is set to None, so in the following the other functions take data directly
-    #  from the root file. But "leptons_analysis" must be run at least one to
+    # from the root file. But "leptons_analysis" must be run at least one to
     # collect data.
 
     if args.analysis is True:
@@ -702,7 +748,7 @@ if __name__ == "__main__":
             dimu_cached = leptons_analysis(f"{args.file}", outfile_m)
     else:
         if not os.path.isfile(args.outfile):
-            raise IOError(f"The file {outfile_m} doesn't exist. Maybe you have "
+            raise IOError(f"The file {args.outfile} doesn't exist. Maybe you have "
                            "to run the analysis first.")
         dimu_cached = None
         outfile_m = args.outfile
@@ -712,26 +758,20 @@ if __name__ == "__main__":
     logger.debug("The new directory \"Spectra\" is created")
     mumu_spectrum(outfile_m, dimu_cached, True)
 
-
     # # DIMUON ETA DISTRIBUTION
     # ACCETTANZA DELL'ESPERIMENTO DALA DISTRIBUZIONE IN ETA???
     # DIMINUISCE CON IL PT????
     mumu_eta(outfile_m, dimu_cached)
 
-    # RESONANCE'S FIT
+    # RESONANCE'S FIT & PROPERTIES
     os.makedirs("Fit", exist_ok=True)
-    logger.debug("The new directory \"Fit\" is created")
-    # for p in args.particle:
-    #     resonance_fit(outfile_m, p)
-
-    # # PROPERTIES
     os.makedirs("Properties", exist_ok=True)
-    logger.debug("The new directory \"Properties\" is created")
-    # for p in args.particle:
-    #     resonance_prop(outfile_m, dimu_cached, p)
+    logger.debug("The new directories \"Fit\" and \"Properties\" are created")
+
+    for p in args.particle:
+        resonance_fit(outfile_m, p)
+        resonance_prop(outfile_m, dimu_cached, p)
 
     # Elapsed time
     logger.info(f" Elapsed time from the beginning is:"
         f" {time.time()-start}(real time) seconds")
-    logger.info(f" Elapsed time from the beginning is: "
-        f"{time.process_time()-start_cpu}(cpu time) seconds")

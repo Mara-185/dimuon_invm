@@ -23,40 +23,58 @@ ROOT::VecOps::RVec<float> dilepton_vec(const float pt0, const float eta0,
 
 
     // The function takes in input transverse momentum, rapidity, azimuthal angle
-    // and mass of each muon of the filtered events and it returns a "VecOps"
-    // with the value of the cos(theta*) in the Collins-Soper frame and the
-    // rapidity of the dileptons.
+    // and mass of each muon and the charge of one of them of the filtered events
+    // and it returns a "VecOps" with the value of the cos(theta*) in the
+    // Collins-Soper frame and the rapidity of the dileptons.
 
 ROOT::VecOps::RVec<float> cos_rapidity(const float pt0, const float eta0,
-        const float phi0, const float mass0, const float pt1,
+        const float phi0, const float mass0, const int charge0, const float pt1,
         const float eta1, const float phi1, const float mass1)
     {
-      float pz0, pz1, E0, E1, P0_1, P0_2, P1_1, P1_2, mll, ptt, pzll, cos, y;
+      float pz1, pz2, E1, E2, P1_p, P1_m, P2_p, P2_m, mll, ptt, pzll, cos, y;
+      ROOT::Math::PtEtaPhiMVector pp, pm;
+      std::vector<double> pl1, pl2, p1, p2;
 
-      ROOT::Math::PtEtaPhiMVector p0, p1;
-      p0.SetCoordinates(pt0, eta0, phi0, mass0);
-      p1.SetCoordinates(pt1, eta1, phi1, mass1);
+      // Set the array
+      pp.SetCoordinates(pt0, eta0, phi0, mass0);
+      pm.SetCoordinates(pt1, eta1, phi1, mass1);
 
-      pz0 = pt0*sinh(eta0);
-      E0 = sqrt(pow(pz0,2)+pow(pt0,2)+pow(mass0,2));
-      pz1 = pt1*sinh(eta1);
-      E1 = sqrt(pow(pz1,2)+pow(pt1,2)+pow(mass1,2));
+      pl1.emplace_back(pt0);
+      pl1.emplace_back(eta0);
+      pl1.emplace_back(phi0);
+      pl1.emplace_back(mass0);
 
-      P0_1 = (E0+pz0)/sqrt(2);
-      P0_2 = (E0-pz0)/sqrt(2);
-      P1_1 = (E1+pz1)/sqrt(2);
-      P1_2 = (E1-pz1)/sqrt(2);
+      pl2.emplace_back(pt1);
+      pl2.emplace_back(eta1);
+      pl2.emplace_back(phi1);
+      pl2.emplace_back(mass1);
 
-      mll = pow((p1+p0).M(),2);
-      ptt = pow((p1+p0).Pt(),2);
-      pzll = pz0+pz1;
+      // p1 has to be the muons with charge -1.
+      if(charge0==-1){
+        p1=pl1;
+        p2=pl2;
+      }
+      else{
+        p1=pl2;
+        p2=pl1;
+      }
 
-      //numer = (2*((P0_1*P1_2) - (P0_2*P1_1)));
-      //denom = sqrt(mll*(mll+ptt));
-      //cos = (numer/denom)*(pzll/abs(pzll));
+      pz1 = p1[0]*sinh(p1[1]);
+      E1 = sqrt(pow(pz1,2)+pow(p1[0],2)+pow(p1[3],2));
+      pz2 = p2[0]*sinh(p2[1]);
+      E2 = sqrt(pow(pz2,2)+pow(p2[0],2)+pow(p2[3],2));
 
-      cos = ((2*((P0_1*P1_2) - (P0_2*P1_1)))/(sqrt(mll*(mll+ptt))))*(pzll/abs(pzll));
-      y = (0.5)*log(((E0+E1)+(pzll))/((E0+E1)-(pzll)));
+      P1_p = (E1+pz1)/sqrt(2);
+      P1_m = (E1-pz1)/sqrt(2);
+      P2_p = (E2+pz2)/sqrt(2);
+      P2_m = (E2-pz2)/sqrt(2);
+
+      mll = pow((pp+pm).M(),2);
+      ptt = pow((pp+pm).Pt(),2);
+      pzll = pz1+pz2;
+
+      cos = ((2*((P1_p*P2_m) - (P1_m*P2_p)))/(sqrt(mll*(mll+ptt))))*(pzll/abs(pzll));
+      y = (0.5)*log(((E1+E2)+(pzll))/((E1+E2)-(pzll)));
 
       ROOT::VecOps::RVec<float> A{cos,y};
 
@@ -69,10 +87,10 @@ ROOT::VecOps::RVec<float> cos_rapidity(const float pt0, const float eta0,
   // asymmetry. In particular they are "w_d" and "w_n" (where "d" and "n"
   // stands for "denominator" and "numerator" weight, respectively).
 
+
 ROOT::VecOps::RVec<float> weights(const float pt, const float m, const float c)
       {
         float A0, h, w_d, w_n;
-        //A0 = 0.1;
 
         A0 = (pow(pt,2))/(pow(m, 2)+pow(pt,2));
         h = (0.5)*A0*(1-(3*pow(c,2)));

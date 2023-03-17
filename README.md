@@ -13,4 +13,6 @@ E.g. for the Y(1S,2S,3S):
 
 * **Z_asymmetry**: Seleziona coppie di muoni che passano una particolare selezione (referenza: [link](https://arxiv.org/abs/1806.00863)) e riproduce il plot della Forward-Backward asymmetry in sei diversi range di rapidita'.
 
-E.g.
+E.g. for data of Run2012B-C_SingleMu:
+
+![Image](./Z_asymmetry/Plot/afb_y_all.png "icon")

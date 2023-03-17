@@ -2,6 +2,7 @@
 
 import logging
 import ROOT
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +62,7 @@ PARTICLES_MASS_RANGE = {
   "Y3": (10.1, 10.6)
 }
 
-# Dictionary with intialization parameters for the fit and plot styling
+# Dictionary with intialization parameters for the fit and plot styling.
 # "particle" :
 # (mean0,sigma0,signal,n° parameters for background,xmax(box),ymax(box),name)
 
@@ -102,28 +103,9 @@ FIT_INIT_PARAM = {
 
 # Mass range from article : 60 < M < 120:
     # 60, 70, 78, 84, 87, 89, 91, 93, 95, 98, 104, 112, 120;
-MASS_BIN = {
-    "0": (60, 70),
-    "1": (70, 78),
-    "2": (78, 84),
-    "3": (84, 87),
-    "4": (87, 89),
-    "5": (89, 91),
-    "6": (91, 93),
-    "7": (93, 95),
-    "8": (95, 98),
-    "9": (98, 104),
-    "10": (104, 112),
-    "11": (112, 120)
-}
+
+MASS_BIN = np.array([60, 70, 78, 84, 87, 89, 91, 93, 95, 98, 104, 112, 120], dtype=float)
 
 # Eta bins of equal size for |yll| < 2.4:
     # 0, 0.4, 0.8, 1.2, 1.6, 2.0, 2.4
-RAPIDITY_BIN = {
-    "0": (0.0, 0.4),
-    "1": (0.4, 0.8),
-    "2": (0.8, 1.2),
-    "3": (1.2, 1.6),
-    "4": (1.6, 2.0),
-    "5": (2.0, 2.4),
-}
+RAPIDITY_BIN=np.array([0, .4, .8, 1.2, 1.6, 2.0, 2.4])

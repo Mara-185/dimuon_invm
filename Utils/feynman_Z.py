@@ -5,9 +5,8 @@ import ROOT
 
 if __name__ == "__main__":
 
-    c = ROOT.TCanvas("Feynman diagram", "Feynman diagram")#, 10, 10, 600, 300)
+    c = ROOT.TCanvas("Feynman diagram", "Feynman diagram")
     c.Range(0, 0, 120,60)
-    lin = ROOT.gStyle.GetLineWidth()
     ROOT.gStyle.SetLineWidth(3)
 
     label = ROOT.TLatex()
@@ -37,9 +36,7 @@ if __name__ == "__main__":
 
     label.DrawLatex(100,6,"l^{+} (#mu^{+})")
     label.DrawLatex(100,55,"l^{-} (#mu^{-})")
-
     label.DrawLatex(60, 5, "#bar{q}q -> #gamma/Z_{0} -> l^{+}l^{-}")
 
     c.Update()
-    ROOT.gStyle.SetLineWidth(lin)
     c.SaveAs("Z_diagram.png")
