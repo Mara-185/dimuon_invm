@@ -4,7 +4,7 @@ import logging
 import ROOT
 import numpy as np
 
-logger = logging.getLogger(__name__)
+# pylint: disable=E1101 (10)
 
 def set_logger(name, log_level):
     """

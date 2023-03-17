@@ -47,7 +47,6 @@ import os
 import argparse
 import time
 import sys
-# from pathlib import Path
 import ROOT
 import numpy as np
 
@@ -55,10 +54,11 @@ import numpy as np
 sys.path.insert(0, os.path.abspath('../Utils'))
 import utils
 
-# MASS_BIN = np.array([60, 70, 78, 84, 87, 89, 91, 93, 95, 98, 104, 112, 120], dtype=float)
-# RAPIDITY_BIN=np.array([0, .4, .8, 1.2, 1.6, 2.0, 2.4])
+# pylint: disable=E1101 (9.23)
 
-#logger = logging.getLogger(__name__)
+MASS_BIN = np.array([60, 70, 78, 84, 87, 89, 91, 93, 95, 98, 104, 112, 120],
+    dtype=float)
+RAPIDITY_BIN=np.array([0, .4, .8, 1.2, 1.6, 2.0, 2.4])
 
 def retrieve_dataset(findex):
     """
@@ -80,7 +80,7 @@ def retrieve_dataset(findex):
 
     """
 
-    with open(findex) as inf:
+    with open(findex, "r", encoding="utf-8") as inf:
         # Strings of all files in the dataset are loaded.
         data = [_.rstrip('\n') for _ in inf]
         run = findex.replace("_index.txt", "")
@@ -189,6 +189,8 @@ def cos_eta(rdf_all_c, data_type, pt_lim=(0,120), infile=None):
 
     :param rdf_all_c: RDataFrame to analyze.
     :type rdf_all_c: RDataFrame, required
+    :param data_type: type of dataset analyzied
+    :type data_type: string, required
     :param pt_lim: range limits of transverse momentum
     :type pt_lim: tuple, required, , default=(0,120)
     :param infile: data file
@@ -256,6 +258,8 @@ def mass_eta(rdf_all_m, data_type, pt_lim = (0,120), infile=None):
 
     :param rdf_all_m: RDataFrame to analyze.
     :type rdf_all_m: RDataFrame, required
+    :param data_type: type of dataset analyzied
+    :type data_type: string, required
     :param pt_lim: range limits of transverse momentum
     :type pt_lim: tuple, required, default=(0,120)
     :param infile: data file
@@ -308,7 +312,7 @@ def mass_eta(rdf_all_m, data_type, pt_lim = (0,120), infile=None):
     os.chdir(os.path.dirname(os. getcwd()))
 
 
-def afb(rdf_all, data_type, pt_lim):
+def afb(rdf_all, data_type, pt_lim=(0,120)):
     """
     The function calculates the value of Afb (Asymmetry forward-backward)
     using the \"angular event weighting\" in the six different ranges of
@@ -377,25 +381,25 @@ def afb(rdf_all, data_type, pt_lim):
     # Plot results for each range of rapidity
     c_afb = ROOT.TCanvas("c_afb", "c_afb")
     c_afb.Print(f"afb_{data_type}.pdf[", "pdf")
+    file_afb = ROOT.TFile(f"hafb_{data_type}.root", "recreate")
 
     ROOT.gStyle.SetOptStat("mr")
     for i in range(0, 6, 1):
         ROOT.gStyle.SetOptStat(0)
         h_yn = h_Nf.ProjectionY(f"hy_{i}", i+1, i+1)
-        #########################################
-        if i==5:
-            h_yn = h_Nf.ProjectionY(f"hy_{i}", i+1, i+2)
-        ##########################################
         h_yn.SetTitle(f"Afb[y({round(utils.RAPIDITY_BIN[i],1)},"
             f"{round(utils.RAPIDITY_BIN[i+1], 1)})]")
         h_yn.Draw("E")
+        h_yn.Write()
         line.Draw()
-        c_afb.Print(f"afb_{data_type}.pdf", f"Title:Afb[y({utils.RAPIDITY_BIN[i]},{utils.RAPIDITY_BIN[i+1]})")
+        c_afb.Print(f"afb_{data_type}.pdf", f"Title:Afb[y({utils.RAPIDITY_BIN[i]}"
+            f",{utils.RAPIDITY_BIN[i+1]})")
         c_afb.SaveAs(f"Afb[y({utils.RAPIDITY_BIN[i]},{utils.RAPIDITY_BIN[i+1]}),"
             f"pt({pt_lim[0]},{pt_lim[1]})]_{data_type}.png")
 
-    c_afb.Print(f"afb_{data_type}.pdf]", f"Title:Afb[y({utils.RAPIDITY_BIN[i]},{utils.RAPIDITY_BIN[i+1]})")
-
+    c_afb.Print(f"afb_{data_type}.pdf]", f"Title:Afb[y({utils.RAPIDITY_BIN[i]},"
+        f"{utils.RAPIDITY_BIN[i+1]})")
+    file_afb.Close()
     # Summary plot
     c_div = ROOT.TCanvas("divided", "divided", 1400, 900)
     c_div.Divide(6, 1, 0, 0)
@@ -447,6 +451,7 @@ def afb(rdf_all, data_type, pt_lim):
         line.Draw()
 
     c_div.SaveAs(f"afb_y_{data_type}.png")
+    logger.info("Plots of Forward-Backward asymmetry have been saved.")
 
 
 def comparison_cos(mc_file, data_file):
@@ -463,12 +468,13 @@ def comparison_cos(mc_file, data_file):
     :type data_file: root file, required
 
     """
+
     # Open files containing histograms
     f_mc = ROOT.TFile(mc_file)
     f_all = ROOT.TFile(data_file)
 
     c_cc = ROOT.TCanvas("MC+data_cos", "MC+data_cos")
-    c_cc.Print(f"MC_data_cos.pdf[", "pdf")
+    c_cc.Print("MC_data_cos.pdf[", "pdf")
 
     for i in range(0, 6, 1):
         ROOT.gStyle.SetTitleSize(0.045, "t")
@@ -496,13 +502,18 @@ def comparison_cos(mc_file, data_file):
         leg.AddEntry(h_all, "Data", "p")
         leg.SetShadowColor(0)
         leg.Draw()
-        c_cc.Print("MC_data_cos.pdf", f"Title:({utils.RAPIDITY_BIN[i]},{utils.RAPIDITY_BIN[i+1]})")
-        c_cc.SaveAs(f"MC_data_cos({utils.RAPIDITY_BIN[i]},{utils.RAPIDITY_BIN[i+1]}).png")
+        c_cc.Print("MC_data_cos.pdf", f"Title:({utils.RAPIDITY_BIN[i]},"
+            f"{utils.RAPIDITY_BIN[i+1]})")
+        c_cc.SaveAs(f"MC_data_cos({utils.RAPIDITY_BIN[i]},"
+            f"{utils.RAPIDITY_BIN[i+1]}).png")
 
-    c_cc.Print("MC_data_cos.pdf]", f"Title:({utils.RAPIDITY_BIN[i]},{utils.RAPIDITY_BIN[i+1]})")
+    c_cc.Print("MC_data_cos.pdf]", f"Title:({utils.RAPIDITY_BIN[i]},"
+        f"{utils.RAPIDITY_BIN[i+1]})")
     # Close files
     f_mc.Close()
     f_all.Close()
+    logger.info("Plots with the comparison between data and MC cos(theta*) "
+        "distribution have been saved.")
 
 def comparison_mass(mc_file, data_file):
     """
@@ -524,7 +535,7 @@ def comparison_mass(mc_file, data_file):
     f_all = ROOT.TFile(data_file)
 
     c_cm = ROOT.TCanvas("MC+data_mass", "MC+data_mass")
-    c_cm.Print(f"MC_data_mass.pdf[", "pdf")
+    c_cm.Print("MC_data_mass.pdf[", "pdf")
 
     for i in range(0, 6, 1):
         # Retrieve hisograms of MC and DATA
@@ -550,13 +561,18 @@ def comparison_mass(mc_file, data_file):
         leg.AddEntry(h_all, "Data", "p")
         leg.SetShadowColor(0)
         leg.Draw()
-        c_cm.Print("MC_data_mass.pdf", f"Title:({utils.RAPIDITY_BIN[i]},{utils.RAPIDITY_BIN[i+1]})")
-        c_cm.SaveAs(f"MC_data_mass({utils.RAPIDITY_BIN[i]},{utils.RAPIDITY_BIN[i+1]}).png")
+        c_cm.Print("MC_data_mass.pdf", f"Title:({utils.RAPIDITY_BIN[i]},"
+            f"{utils.RAPIDITY_BIN[i+1]})")
+        c_cm.SaveAs(f"MC_data_mass({utils.RAPIDITY_BIN[i]},"
+            f"{utils.RAPIDITY_BIN[i+1]}).png")
 
     # Close files
-    c_cm.Print("MC_data_mass.pdf]", f"Title:({utils.RAPIDITY_BIN[i]},{utils.RAPIDITY_BIN[i+1]})")
+    c_cm.Print("MC_data_mass.pdf]", f"Title:({utils.RAPIDITY_BIN[i]},"
+        f"{utils.RAPIDITY_BIN[i+1]})")
     f_mc.Close()
     f_all.Close()
+    logger.info("Plots with the comparison between data and MC mass distribution"
+        " have been saved.")
 
 
 
@@ -587,7 +603,6 @@ if __name__ == "__main__":
 
     # Start the the timer
     start = time.time()
-    # start_cpu = time.process_time()
 
     # Creating the parser
     parser = argparse.ArgumentParser(description = "Processing the root file of data.")
@@ -609,7 +624,8 @@ if __name__ == "__main__":
         "MC and actual data. It's necessary to have run previously the functions "
         "\"cos_eta\" and \"mass_eta\" separatly on them.")
 
-    #parser.add_argument("-d", "--display", action="store_true",default=False, help="Show RDataFrame")
+    #parser.add_argument("-d", "--display", action="store_true",default=False,
+    #         help="Show RDataFrame")
     # parser.add_argument("-l", "--limit", nargs="+",type=int,
     #     help="Range of files to analyze, taken from the file index."
     #          " Format: -l start stop. \"stop\" is excluded.")
@@ -631,16 +647,10 @@ if __name__ == "__main__":
     nthreads = 8
     ROOT.ROOT.EnableImplicitMT(nthreads)
 
-    # if not args.display:
-    #     nthreads = 10
-    #     ROOT.ROOT.EnableImplicitMT(nthreads)
-
     # Retrieve dataset from the web and start the selection on good events.
-    #print(args.analysis)
-    data_type = args.d_type
+    #data_type = args.d_type
     if args.analysis is True:
         root_files=ROOT.std.vector("string")()
-        #root_files.reserve(N_tot_files) ####????
         times = []
         N_times = []
         for f in args.file:
@@ -648,12 +658,12 @@ if __name__ == "__main__":
             root_files+=root_files0
             times+=ftime
             N_times+=N_time
-            with open("Analyzed_files.txt", "w") as outf1:
+            with open("Analyzed_files.txt", "w", encoding="utf-8") as outf1:
                 for r in root_files:
                     print(r, file=outf1)
 
         # Save and plot histogram time vs N° events anayzed for each file
-        with open(f"times_vs_N.txt", "w+") as outf2:
+        with open("times_vs_N.txt", "w+", encoding="utf-8") as outf2:
             print("time:N_events", file=outf2)
             for t, N_t in zip(times, N_times):
                 print(t, N_t, file=outf2)
@@ -681,10 +691,10 @@ if __name__ == "__main__":
 
     elif args.analysis is False:
         root_files = ROOT.std.vector("string")()
-        with open("Analyzed_files.txt") as inf:
-            for line in inf:
-                line = line.replace("\n", "")
-                root_files.emplace_back(line)
+        with open("Analyzed_files.txt", "r", encoding="utf-8") as infa:
+            for lin in infa:
+                lin = lin.replace("\n", "")
+                root_files.emplace_back(lin)
 
         # Create a RDataFrame with all the selected data.
         os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Snapshots')))
@@ -707,13 +717,13 @@ if __name__ == "__main__":
     # rapidity. "pt_lim" is a tuple to set the limits on transverse momentum.
     # pt_lim = (0,120)
     pt_lim = (0,round(all_data.Max("Dimuon_pt").GetValue(),2))
-    mass_eta(all_data,data_type,pt_lim)
-    cos_eta(all_data,data_type, pt_lim)
+    mass_eta(all_data,args.d_type,pt_lim)
+    cos_eta(all_data,args.d_type, pt_lim)
 
     # Compute AFB (Forward_Backward Asymmetry) and plot results
     logger.info(" Computing Forward-Backward asymmetry...")
     os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Plot')))
-    afb(all_data, data_type, pt_lim)
+    afb(all_data, args.d_type, pt_lim)
 
     # Comparison
     ######################## CHECK ON -C SE è TUTTO GIUSTO
@@ -726,5 +736,3 @@ if __name__ == "__main__":
     # Elapsed time
     logger.info(f" Elapsed time from the beginning is:"
         f" {time.time()-start}(real time) seconds")
-    # logger.info(f" Elapsed time from the beginning is:"
-    #     f" {time.process_time()-start_cpu}(cpu time) seconds")

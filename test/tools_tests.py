@@ -6,14 +6,13 @@ import os
 import sys
 import ROOT
 
+# pylint: disable=E1101 (7.92)
+
 # Add my modules to the path
-root_utils = os.path.abspath('../Utils')
-sys.path.insert(0, root_utils)
-#sys.path.insert(0, os.path.join(root_utils, "utils"))
+sys.path.insert(0, os.path.abspath('../Utils'))
 import utils
 
 #Import shared library to test
-#ROOT.gInterpreter.ProcessLine('#include "tools.h"')
 ROOT.gSystem.Load('../Utils/tools_cpp.so')
 
 
@@ -47,7 +46,7 @@ def create_example():
     return pt, eta, phi, mass, charge
 
 
-class Z_asymmetryTest(unittest.TestCase):
+class ZAsymmetryTest(unittest.TestCase):
     """Define a class with the tests."""
 
     def test_dilepton_vec(self):

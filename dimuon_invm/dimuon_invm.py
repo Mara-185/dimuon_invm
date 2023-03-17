@@ -44,8 +44,10 @@ import ROOT
 sys.path.insert(0, os.path.abspath('../Utils'))
 import utils
 
+# pylint: disable=E1101 (9.27)
 
-def leptons_analysis(url, outfile, snap=True):
+
+def leptons_analysis(url, outfile):
     """
     It takes in input a nano-AOD data file and creates a root files, named:
     "dimuon.root" with four useful columns for further analysis:
@@ -114,9 +116,9 @@ def mumu_spectrum(infile, mu_cached=None, bump=False):
     :param infile: name of data root file
     :type infile: string, required
     :param mu_cached: data cached in memory
-    :type mu_cached: RDataFrame, NOT REQUIRED, default=False
+    :type mu_cached: RDataFrame, NOT REQUIRED, default=None
     :param bump: False to plot without the bump
-    :type bump: boolean, NOT REQUIRED
+    :type bump: boolean, NOT REQUIRED, default=False
 
     """
 
@@ -179,7 +181,7 @@ def mumu_spectrum2(infile, mu_cached=None):
     :param infile: name of data root file
     :type infile: string, required
     :param mu_cached: data cached in memory
-    :type mu_cached: RDataFrame, NOT REQUIRED, default=False
+    :type mu_cached: RDataFrame, NOT REQUIRED, default=None
 
     """
 
@@ -231,6 +233,11 @@ def mumu_eta(infile, mu_cached=None):
     function "leptons_analysis" and plot the histogram of the dimuons
     pseudorapidity, named \"dimuon_eta.png\".
 
+    :param infile: name of data root file
+    :type infile: string, required
+    :param mu_cached: data cached in memory
+    :type mu_cached: RDataFrame, NOT REQUIRED, default=None
+
     """
 
     # Histogram of dimuons pseudorapidity
@@ -261,7 +268,7 @@ def mumu_eta(infile, mu_cached=None):
     os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Spectra')))
     c_eta.SaveAs("dimuon_eta.png")
     os.chdir(os.path.dirname(os. getcwd()))
-    logger.info("The files \"dimuon_eta.png\" has been created.")
+    logger.info("The plot \"dimuon_eta.png\" has been created.")
 
 
 def resonance_fit(infile, particle="all", mu_cached=None):
@@ -276,9 +283,9 @@ def resonance_fit(infile, particle="all", mu_cached=None):
     :param infile: Data file to analyze
     :type infile: root file, required
     :param particle: name of the particle to fit
-    :type particle: string, required
+    :type particle: string, REQUIRED, default="all"
     :param mu_cached: data cached in memory
-    :type mu_cached: RDataFrame, NOT REQUIRED, default=False
+    :type mu_cached: RDataFrame, NOT REQUIRED, default=None
 
     """
 
@@ -528,7 +535,7 @@ def resonance_prop(infile, mu_cached=None, particle="all"):
     :param infile: name of data root file
     :type infile: string, required
     :param mu_cached: data cached in memory
-    :type mu_cached: RDataFrame, NOT REQUIRED, default=False
+    :type mu_cached: RDataFrame, NOT REQUIRED, default=None
     :param particle: name of the particle to fit
     :type bump: string, default="all"
 
@@ -768,9 +775,9 @@ if __name__ == "__main__":
     os.makedirs("Properties", exist_ok=True)
     logger.debug("The new directories \"Fit\" and \"Properties\" are created")
 
-    for p in args.particle:
-        resonance_fit(outfile_m, p)
-        resonance_prop(outfile_m, dimu_cached, p)
+    for part in args.particle:
+        resonance_fit(outfile_m, part)
+        resonance_prop(outfile_m, dimu_cached, part)
 
     # Elapsed time
     logger.info(f" Elapsed time from the beginning is:"
