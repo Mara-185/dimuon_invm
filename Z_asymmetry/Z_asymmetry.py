@@ -400,6 +400,7 @@ def afb(rdf_all, data_type, pt_lim=(0,120)):
     c_afb.Print(f"afb_{data_type}.pdf]", f"Title:Afb[y({utils.RAPIDITY_BIN[i]},"
         f"{utils.RAPIDITY_BIN[i+1]})")
     file_afb.Close()
+
     # Summary plot
     c_div = ROOT.TCanvas("divided", "divided", 1400, 900)
     c_div.Divide(6, 1, 0, 0)

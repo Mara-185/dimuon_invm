@@ -106,73 +106,7 @@ def leptons_analysis(url, outfile):
     return dimu_cache
 
 
-def mumu_spectrum(infile, mu_cached=None, bump=False):
-    """
-    It takes in input the root data file or the data cached, obtained by the
-    function "leptons_analysis" and plot the histogram of the dimuons invariant
-    mass. It is also possible to eliminate the bump between the Y and Z
-    resonances by setting the argument "bump=True"; it makes a cut on pt>20 GeV.
-
-    :param infile: name of data root file
-    :type infile: string, required
-    :param mu_cached: data cached in memory
-    :type mu_cached: RDataFrame, NOT REQUIRED, default=None
-    :param bump: False to plot without the bump
-    :type bump: boolean, NOT REQUIRED, default=False
-
-    """
-
-    # Histogram of dimuons mass
-    if mu_cached is None:
-        t_name = infile.replace(".root", "")
-        rdf = ROOT.RDataFrame(t_name,infile)
-        if bump is False:
-            rdf = rdf.Filter("Dimuon_pt>20")
-        h_mu = rdf.Histo1D(ROOT.RDF.TH1DModel("Dimuon mass", "Dimuon mass",
-            50000, 0.3, 200), "Dimuon_mass")
-    else:
-        if bump is False:
-            mu_cached = mu_cached.Filter("Dimuon_pt>20")
-        h_mu = mu_cached.Histo1D(ROOT.RDF.TH1DModel("Dimuon mass", "Dimuon mass",
-            50000, 0.3, 200), "Dimuon_mass")
-
-    # Styling
-    ROOT.gStyle.SetOptStat("e")
-    c_mu = ROOT.TCanvas("dimuon spectrum", "#mu^{+}#mu^{-} invariant mass")
-    c_mu.SetLogx()
-    c_mu.SetLogy()
-    h_mu.GetXaxis().SetTitle("m_{#mu^{+}#mu^{-}} [GeV]")
-    h_mu.GetXaxis().SetTitleSize(0.04)
-    h_mu.GetXaxis().CenterTitle()
-    h_mu.GetYaxis().SetTitle("Events")
-    h_mu.GetYaxis().SetTitleSize(0.04)
-    h_mu.GetYaxis().CenterTitle()
-    h_mu.SetLineColor(601)
-    h_mu.Draw()
-
-    # Labels
-    label = ROOT.TLatex()
-    label.SetNDC(True)
-    label.DrawLatex(0.165, 0.720, "#eta")
-    label.DrawLatex(0.190, 0.772, "#rho,#omega")
-    label.DrawLatex(0.245, 0.775, "#phi")
-    label.DrawLatex(0.400, 0.850, "J/#psi")
-    label.DrawLatex(0.410, 0.700, "#psi'")
-    label.DrawLatex(0.485, 0.700, "Y(1, 2, 3S)")
-    label.DrawLatex(0.795, 0.680, "Z")
-
-    # Save results in png in the folder "Spectra"
-    os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Spectra')))
-    c_name = "dimuon_spectrum"
-    if bump is False:
-        c_name= "dimuon_spectrum_wo_bump"
-
-    c_mu.SaveAs(f"{c_name}.png")
-    os.chdir(os.path.dirname(os. getcwd()))
-    logger.info("The plot \"dimuon_spectrum.png\" has been created.")
-
-
-def mumu_spectrum2(infile, mu_cached=None):
+def mumu_spectrum(infile, mu_cached=None):
     """
     It takes in input the root data file or the data cached, obtained by the
     function "leptons_analysis" and plot the histogram of the dimuons invariant
@@ -763,11 +697,9 @@ if __name__ == "__main__":
     # DIMUON MASS SPECTRUM
     os.makedirs("Spectra", exist_ok=True)
     logger.debug("The new directory \"Spectra\" is created")
-    mumu_spectrum(outfile_m, dimu_cached, True)
+    mumu_spectrum(outfile_m, dimu_cached)
 
-    # # DIMUON ETA DISTRIBUTION
-    # ACCETTANZA DELL'ESPERIMENTO DALA DISTRIBUZIONE IN ETA???
-    # DIMINUISCE CON IL PT????
+    # DIMUON ETA DISTRIBUTION
     mumu_eta(outfile_m, dimu_cached)
 
     # RESONANCE'S FIT & PROPERTIES
