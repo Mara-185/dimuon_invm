@@ -96,16 +96,3 @@ FIT_INIT_PARAM = {
     "Y3": (ROOT.RooRealVar("mean3", "mean3", 10.3, 10., 10.5),
         ROOT.RooRealVar("sigma3", "sigma3", 0.005, 0.001, 1.))
 }
-
-
-# Z_asymmetry:
-# Dictionaries with mass bin values and eta bin values.
-
-# Mass range from article : 60 < M < 120:
-    # 60, 70, 78, 84, 87, 89, 91, 93, 95, 98, 104, 112, 120;
-
-MASS_BIN = np.array([60, 70, 78, 84, 87, 89, 91, 93, 95, 98, 104, 112, 120], dtype=float)
-
-# Eta bins of equal size for |yll| < 2.4:
-    # 0, 0.4, 0.8, 1.2, 1.6, 2.0, 2.4
-RAPIDITY_BIN=np.array([0, .4, .8, 1.2, 1.6, 2.0, 2.4])

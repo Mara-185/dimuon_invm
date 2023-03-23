@@ -1,0 +1,2 @@
+root://eospublic.cern.ch//eos/opendata/cms/derived-data/NanoAODRun1/01-Jul-22/Run2012B_SingleMu/86F96BF9-0051-4F56-9895-51A208C6FD8A.root
+root://eospublic.cern.ch//eos/opendata/cms/derived-data/NanoAODRun1/01-Jul-22/Run2012B_SingleMu/0CA08876-1E1D-40AF-BEB2-3B4FF74AC68A.root

@@ -5,8 +5,6 @@ import ROOT
 
 # pylint: disable=E1101 (9.63)
 
-######################METTI FUNZIONE
-
 if __name__ == "__main__":
 
     c = ROOT.TCanvas("Feynman diagram", "Feynman diagram")

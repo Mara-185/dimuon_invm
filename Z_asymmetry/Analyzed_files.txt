@@ -1,3 +1,5 @@
-dimuon_w0[Run2012B_SingleMu_merged].root
-dimuon_w0[Run2012C_SingleMu_merged].root
-
+file/C:type/C
+dimuon_w0[MCa].root MC
+dimuon_w1[MCa].root MC
+dimuon_w0[2012B].root dat
+dimuon_w1[2012B].root dat
