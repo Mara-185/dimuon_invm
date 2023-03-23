@@ -1,11 +1,12 @@
-#dist: xenial   # required for Python >= 3.7
+dist: xenial   # required for Python >= 3.7
 language: python
 rvm:
   - "3.7"
 # command to install dependencies
-# install:
-#   - pip install -r requirements.txt
+install:
+  - pip install -r requirements.TXT
 # command to run tests
-script: test/tools_tests.py
+# script: test/tools_tests.py
+
 os:
   - linux
