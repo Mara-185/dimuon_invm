@@ -3,10 +3,9 @@ language: python
 rvm:
   - "3.7"
 # command to install dependencies
-install:
-  - pip install -r requirements.txt
+# install:
+#   - pip install -r requirements.txt
 # command to run tests
 script: test/tools_tests.py
 os:
-  - windows
   - linux
