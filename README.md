@@ -1,7 +1,7 @@
 # dimuon_invm
 
 [![Documentation Status](https://readthedocs.org/projects/dimuon-invm/badge/?version=latest)](https://dimuon-invm.readthedocs.io/en/latest/?badge=latest)
-[![Build Status](https://app.travis-ci.com/Mara-185/dimuon_invm.svg?branch=main&status=passed](https://app.travis-ci.com/github/Mara-185/dimuon_invm)
+[![Build Status](https://app.travis-ci.com/Mara-185/dimuon_invm.svg?branch=main)](https://app.travis-ci.com/Mara-185/dimuon_invm)
 
 Il pacchetto propone due analisi differenti su dati di tipo NanoAOD:
 * **dimuon_invm**: Seleziona le coppie di dimuoni con carica opposta al fine di riprodurre le risonanze nello spettro in massa dei dimuoni. Per ciascuna risonanza è possibile riprodurre plot di impulso trasverso, pseudorapidità e angolo azimutale e fare un fit del picco per ricavare il valore della massa e della larghezza.
