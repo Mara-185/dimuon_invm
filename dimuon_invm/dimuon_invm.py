@@ -2,25 +2,23 @@
 Analysis of the dimuon invariant mass spectrum.
 The script takes as arguments:
 
-    - the data file (URL) of dileptons (-f), for example: "root:
-        //eospublic.cern.ch//eos/root-eos/cms_opendata_2012_nanoaod/
+    - (-f) the data file (URL) of dileptons (they have to be NanoAOD type), for
+        example:"root://eospublic.cern.ch//eos/root-eos/cms_opendata_2012_nanoaod/
         Run2012B_DoubleMuParked.root"; [REQUIRED]
-    - the string of the particle's name (-p) to analyze and fit, among those
+    - (-p) the string of the particle's name to analyze and fit, among those
         in the dimuon spectrum, which are :
         "eta", "rho","omega", "phi", "J-psi", "psi'", "Y", "Z".
         Better put the string in quotes, because for example for the "psi'" the
         " ' " character gives some troubles. Default value is \"all\", so it
         returns fit and properties of all resonances.
 
-There are different functions for the main analysis, among which:
+Furthermore, there are other optional arguments in order to skip the analysis:
 
-    - "leptons_analysis" which selects the couple of muons which are interesting
-        in order to plot the dimuon mass spectrum and for further analysis;
-    - "mumu_spectrum" which plot the dimuon mass spectrum;
-    - "resonance_fit" solves every resonance and returns the plot with the
-        fitted mass and a txt with the results;
-    - "resonance_prop" creates different plots of the main characteristics of
-        the particle chosen in the spectrum.
+    - (-no--a) if we have already done the analysis to create a snapshot of the
+        useful data (through \"leptons_analysis\"), we can then skip this step
+        passing this string as argument. But it's also necessary to pass the
+        the name of the data file, through the argument:
+    - (-o) the name of the output file created from a previous analysis.
 
 In the analysis the following version have been used:
 
@@ -49,8 +47,9 @@ import utils
 
 def leptons_analysis(url, outfile):
     """
-    It takes in input a nano-AOD data file and creates a root files, named:
-    "dimuon.root" with four useful columns for further analysis:
+    It takes in input a nano-AOD data file from which selects couples of muons
+    which are interesting for further analysis. It also creates a root files,
+    named: "dimuon.root" with four new useful columns:
     ["Dimuon_mass", "Dimuon_pt", "Dimuon_eta", "Dimuon_phi"].
     It returns the RDataFrame cached in memory with the columns listed above.
 
@@ -612,6 +611,391 @@ def resonance_prop(infile, mu_cached=None, particle="all"):
             os.chdir(os.path.dirname(os. getcwd()))
 
 
+def resonance_fit2(infile, particle="all", mu_cached=None):
+    """
+    It takes in input the root data file obtained with "leptons_analysis"
+    and a string with the name of the resonance to fit. Possible arguments
+    are: \"eta\", \"rho\",\"omega\", \"phi\", \"J-psi\", \"psi'\", \"Y\",
+    \"Z\", \"all\"."
+    It creates a plot with the fitted data and a txt file with fit results of
+    the chosen resonance(s).
+
+    :param infile: Data file to analyze
+    :type infile: root file, required
+    :param particle: name of the particle to fit
+    :type particle: string, REQUIRED, default="all"
+    :param mu_cached: data cached in memory
+    :type mu_cached: RDataFrame, NOT REQUIRED, default=None
+
+    """
+
+    # Start the timer
+    start_fit = time.time()
+
+    if particle is None:
+        particle="all"
+
+    # An auxiliary TTree from the root data file is created.
+    if mu_cached is None:
+        f = ROOT.TFile.Open(infile)
+        tree_name = infile.replace(".root", "")
+        tree = f.Get(f"{tree_name}")
+        logger.debug("The tree is created.")
+    else:
+        logger.debug("Devi aggiornare la versione di root a 6.26 e usare"
+            "RooDataSetHelper")
+
+    low_edge_pt = 0
+    upper_edge_pt = 120
+    eta_edge = 1.2
+
+
+    # All background is characterized by Chebychev polynomials
+    bkg = "Chebychev"
+    arguments = ["eta", "rho", "omega", "phi", "J-psi", "psi'", "Y", "Z"]
+
+    if particle=="all":
+        for p in arguments:
+            resonance_fit(infile, p)
+    elif particle not in arguments:
+        raise SyntaxError
+
+
+    if particle!="all":
+        logger.info(f"Fit of particle {particle}...")
+        logger.debug("No error flag")
+
+        # Mass limits are defined in order to make a selection on data for each
+        # particle. The shapes of signal and background are choosed, too.
+        if particle=="Y":
+            mean1 = utils.FIT_INIT_PARAM["Y1"][0]
+            mean2 = utils.FIT_INIT_PARAM["Y2"][0]
+            mean3 = utils.FIT_INIT_PARAM["Y3"][0]
+            sigma1 = utils.FIT_INIT_PARAM["Y1"][1]
+            sigma2 = utils.FIT_INIT_PARAM["Y2"][1]
+            sigma3 = utils.FIT_INIT_PARAM["Y3"][1]
+        else:
+            mean = utils.FIT_INIT_PARAM[f"{particle}"][0]
+            sigma = utils.FIT_INIT_PARAM[f"{particle}"][1]
+
+        sig = utils.FIT_INIT_PARAM[f"{particle}"][2]
+        nparam = utils.FIT_INIT_PARAM[f"{particle}"][3]
+        xmax = utils.FIT_INIT_PARAM[f"{particle}"][4]
+        ymax = utils.FIT_INIT_PARAM[f"{particle}"][5]
+        name = utils.FIT_INIT_PARAM[f"{particle}"][6]
+
+        # Retrieve values of mass range for each particles
+        lower_mass_edge = utils.PARTICLES_MASS_RANGE[f"{particle}"][0]
+        upper_mass_edge = utils.PARTICLES_MASS_RANGE[f"{particle}"][1]
+
+        Dimuon_mass = ROOT.RooRealVar("Dimuon_mass", "Dimuon_mass",
+            lower_mass_edge,upper_mass_edge)
+        Dimuon_pt = ROOT.RooRealVar("Dimuon_pt", "Dimuon_pt", low_edge_pt,
+            upper_edge_pt)
+        Dimuon_eta = ROOT.RooRealVar("Dimuon_eta", "Dimuon_eta", -eta_edge,
+            +eta_edge)
+
+        # Define "signal", "background" and cuts for each particle in order
+        # to fit them.
+        cut = ROOT.RooFormulaVar("cut on mass, pt, eta",\
+            f"Dimuon_mass>{lower_mass_edge} && Dimuon_mass<{upper_mass_edge} \
+            && Dimuon_pt>{low_edge_pt} && Dimuon_pt<{upper_edge_pt} \
+            && Dimuon_eta>{-eta_edge} && Dimuon_eta<{eta_edge} ", \
+            ROOT.RooArgList(Dimuon_mass, Dimuon_pt, Dimuon_eta))
+        rds = ROOT.RooDataSet("rds","rds",tree,
+            ROOT.RooArgSet(Dimuon_mass, Dimuon_pt, Dimuon_eta),cut)
+        logger.debug("The roodataset is created from the tree with cut on mass,"
+            " pt, and eta.")
+        num = rds.sumEntries()
+
+        if sig=="gaus":
+            sigf=ROOT.RooGaussian(sig, "The resonance", Dimuon_mass, mean, sigma)
+        elif sig=="Crystal ball":
+            alpha = ROOT.RooRealVar("alpha", "alpha", 1.5, 0.5, 5)
+            n = ROOT.RooRealVar("n", "n", 5, 0., 10)
+            sigf = ROOT.RooCBShape(sig, sig, Dimuon_mass, mean, sigma, alpha, n)
+        elif sig=="3gaus":
+            sig1 = ROOT.RooGaussian(f"{sig}1", "The resonance1",
+                Dimuon_mass, mean1, sigma1)
+            sig2 = ROOT.RooGaussian(f"{sig}2", "The resonance2",
+                Dimuon_mass, mean2, sigma2)
+            sig3 = ROOT.RooGaussian(f"{sig}3", "The resonance3",
+                Dimuon_mass, mean3, sigma3)
+
+        # Background
+        a0 = ROOT.RooRealVar("a0", "a0", -0.17, -1, 1)
+        a1 = ROOT.RooRealVar("a1", "a1", 0.4, -1, 1)
+        if nparam == 2:
+            bkgf= ROOT.RooChebychev(bkg, bkg, Dimuon_mass,
+                ROOT.RooArgList(a0, a1))
+        elif nparam == 3:
+            a2 = ROOT.RooRealVar("a2", "a2", -1, 1)
+            bkgf= ROOT.RooChebychev(bkg, bkg, Dimuon_mass,
+                ROOT.RooArgList(a0, a1, a2))
+
+        #Extended Fit
+        nbkg = ROOT.RooRealVar("nbkg", "backgrounds events", num/2, 0, num)
+
+        if particle=="Y":
+            nsig1 = ROOT.RooRealVar("nsig1", "signal events", num/6, 0, num)
+            nsig2 = ROOT.RooRealVar("nsig2", "signal events", num/7, 0, num)
+            nsig3 = ROOT.RooRealVar("nsig3", "signal events", num/7, 0, num)
+            tot = ROOT.RooAddPdf("Model", "The total pdf",
+                ROOT.RooArgList(sig1, sig2, sig3, bkgf),
+                ROOT.RooArgList(nsig1, nsig2, nsig3, nbkg))
+        else:
+            nsig = ROOT.RooRealVar("nsig", "signal events", num/5, 0, num)
+            tot = ROOT.RooAddPdf("Model", "The total pdf",
+                ROOT.RooArgList(sigf, bkgf), ROOT.RooArgList(nsig, nbkg))
+
+        # Fit properties
+        opt_list = ROOT.RooLinkedList()
+        opt_list.Add(ROOT.RooFit.Extended(ROOT.kTRUE))
+        opt_list.Add(ROOT.RooFit.Save())
+        opt_list.Add(ROOT.RooFit.BatchMode(ROOT.kTRUE))
+        opt_list.Add(ROOT.RooFit.NumCPU(4))
+        opt_list.Add(ROOT.RooFit.PrintLevel(-1))
+
+        # Fit
+        results = tot.fitTo(rds,opt_list)
+
+        # Retrieve number of free parameters
+        ndf = results.floatParsFinal().getSize()
+
+        #Plot and styling
+        mframe = Dimuon_mass.frame()
+        mframe.SetTitle(f"{name} mass")
+        rds.plotOn(mframe,ROOT.RooFit.Name("Data"),ROOT.RooFit.MarkerColor(861),
+            ROOT.RooFit.Name("Data"))
+        tot.plotOn(mframe, ROOT.RooFit.Name("Model"),ROOT.RooFit.LineColor(798))
+        tot.plotOn(mframe, ROOT.RooFit.Name(f"{bkg}"),ROOT.RooFit.Components(bkg),
+            ROOT.RooFit.LineStyle(ROOT.kDashed), ROOT.RooFit.LineColor(ROOT.kRed))
+
+        mframe.GetXaxis().SetTitle("m_{#mu^{+}#mu^{-}} [GeV]")
+        mframe.GetXaxis().SetTitleSize(0.045)
+        mframe.GetXaxis().CenterTitle()
+        mframe.GetYaxis().CenterTitle()
+
+        c_fit = ROOT.TCanvas(f"{name} Resonance", f"{name} Resonance")
+
+        # Retrieve the Chi Square
+        chi = mframe.chiSquare("Model","Data", ndf)
+        chi2 = f"chi/ndf = {round(chi*ndf,2)}/{ndf} = {round(chi,2)}"
+
+        if particle =="Y":
+            for i in range(1,4,1):
+                tot.plotOn(mframe, ROOT.RooFit.Name(f"{sig}{i}"),
+                    ROOT.RooFit.Components(f"{sig}{i}"),
+                    ROOT.RooFit.LineStyle(ROOT.kDashed),ROOT.RooFit.LineColor(418))
+
+            para = ROOT.RooArgSet(mean1, sigma1, mean2, sigma2, mean3, sigma3)
+            tot.paramOn(mframe,ROOT.RooFit.Parameters(para),ROOT.RooFit.Label(chi2),
+                ROOT.RooFit.Format("NEU",
+                ROOT.RooFit.AutoPrecision(0)),ROOT.RooFit.Layout(0.62, 0.9, 0.9))
+            mframe.getAttText().SetTextSize(0.033)
+
+            #Labels
+            ROOT.gPad.SetGrid()
+            mframe.Draw()
+            label = ROOT.TLatex()
+            label.SetNDC(True)
+            label.DrawLatex(0.3, 0.8, "Y(1S)")
+            label.DrawLatex(0.5, 0.55, "Y(2S)")
+            label.DrawLatex(0.72, 0.4, "Y(3S)")
+
+            # Legend
+            leg = ROOT.TLegend(xmax-.3, ymax+.1, xmax-.12, ymax)
+            leg.AddEntry(f"{sig}1",f"{sig}", "l")
+
+            # Print fit results
+            print(f"The mass and the width of the particles {name} obtained from"
+            f"the fit are:\n"
+            f"m(Y1S) = {mean1.getValV()}; width(Y1S) = {sigma1.getValV()}\n"
+            f"m(Y2S) = {mean2.getValV()}; width(Y2S) = {sigma2.getValV()}\n"
+            f"m(Y3S) = {mean3.getValV()}; width(Y3S) = {sigma3.getValV()}\n"
+            f"chi2\\ndf = {chi}\n")
+        else:
+            tot.plotOn(mframe, ROOT.RooFit.Name(f"{sig}"),
+                ROOT.RooFit.Components(sig),
+                ROOT.RooFit.LineStyle(ROOT.kDashed),ROOT.RooFit.LineColor(418))
+
+            para = ROOT.RooArgSet(mean, sigma)
+            tot.paramOn(mframe,ROOT.RooFit.Parameters(para),ROOT.RooFit.Label(chi2),
+                ROOT.RooFit.Format("NEU",ROOT.RooFit.AutoPrecision(0)),
+                ROOT.RooFit.Layout(xmax-.27, xmax, ymax))
+            mframe.getAttText().SetTextSize(0.03)
+            ROOT.gPad.SetGrid()
+            mframe.Draw()
+
+            # Legend
+            leg = ROOT.TLegend(xmax-.27,ymax+.1,xmax-.1,ymax)
+            leg.AddEntry(f"{sig}",f"{sig}", "l")
+
+            # Print fit results
+            print(f"The mass and the width of the particle {particle} obtained "
+                f"from the fit are: \n"
+                f"m = {mean.getValV()}; width = {sigma.getValV()}\n"
+                f"chi2\\ndf = {chi}\n")
+
+        leg.AddEntry(f"{bkg}",f"{bkg}", "l")
+        leg.AddEntry("Model","Total", "l")
+        leg.SetShadowColor(0)
+        leg.Draw()
+
+        #Save results in the directory "Fit"
+        os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Fit')))
+        c_fit.SaveAs(f"{particle}_fit.png")
+        utils.write_fitresults(results, f"res_{particle}.txt")
+
+        # Return in main directory
+        os.chdir(os.path.dirname(os. getcwd()))
+        f.Close()
+        logger.info(f"Elapsed time to fit {particle}: {time.time()-start_fit}")
+
+
+def resonance_prop2(infile, mu_cached=None, particle="all"):
+    """
+    The function creates different plots of the main properties of the
+    resonances such as transverse momentum, pseudorapidity and azimuthal angle.
+    It takes in input the root data file or the data cached obtained by the
+    function "leptons_analysis" and a string with the name of the resonance;
+    the default value is "all", in this case plots of all resonances' properties
+    are created.
+
+    :param infile: name of data root file
+    :type infile: string, required
+    :param mu_cached: data cached in memory
+    :type mu_cached: RDataFrame, NOT REQUIRED, default=None
+    :param particle: name of the particle to fit
+    :type bump: string, default="all"
+
+    """
+
+    # Cuts on pt
+    pt_cut_inf = 0
+    pt_cut_sup = 120
+
+
+    if particle is None:
+        particle="all"
+
+    # Rdataframe with useful cuts is created.
+    if mu_cached is None:
+        t_name = infile.replace(".root", "")
+        rdf = ROOT.RDataFrame(t_name,infile)
+        rdf_cut=rdf.Filter(f" Dimuon_pt>{pt_cut_inf} && Dimuon_pt<{pt_cut_sup}")
+    else:
+        rdf_cut=mu_cached.Filter(f" Dimuon_pt>{pt_cut_inf} && Dimuon_pt<{pt_cut_sup}")
+
+    arguments = ["eta", "rho", "omega", "phi", "J-psi", "psi'", "Y", "Z"]
+
+    # Check on input arguments
+    if particle=="all":
+        for p in arguments:
+            resonance_fit(infile, p)
+    elif particle not in arguments:
+        raise SyntaxError
+
+    if particle!="all":
+
+        logger.info(f"Plot properties of particle {particle}...")
+
+        # Retrieve values of mass range for each particle
+        lower_mass_edge = utils.PARTICLES_MASS_RANGE[f"{particle}"][0]
+        upper_mass_edge = utils.PARTICLES_MASS_RANGE[f"{particle}"][1]
+        rdf_m = rdf_cut.Filter(f" Dimuon_mass>={lower_mass_edge} \
+            && Dimuon_mass<={upper_mass_edge}", f"{particle} cut")
+
+        # Styling
+        name = utils.FIT_INIT_PARAM[f"{particle}"][6]
+        c_prop = ROOT.TCanvas()
+        c_prop.UseCurrentStyle()
+        c_prop.SetGrid()
+        ROOT.gStyle.SetOptStat("e")
+
+        eta_lim=3.5
+
+        # Properties for the three Y resonances
+        if particle=="Y":
+            eta_lim=5
+            for i in range(1, 4, 1):
+                # Retrieve values of mass range and do the cuts
+                lower_mass_edge = utils.PARTICLES_MASS_RANGE[f"Y{i}"][0]
+                upper_mass_edge = utils.PARTICLES_MASS_RANGE[f"Y{i}"][1]
+                rdf_m_y = rdf_m.Filter(f"(Dimuon_mass>={lower_mass_edge})\
+                    &&(Dimuon_mass<={upper_mass_edge})", f"Y cut{i}S")
+
+                n = rdf_m_y.Count().GetValue()
+                nbin_y = math.floor(ROOT.TMath.Sqrt(n))
+
+                # Create a dictonary with all histograms booked
+                h_y = {}
+                h_y["Transverse momentum"]=rdf_m_y.Histo1D(ROOT.RDF.TH1DModel(
+                    f"Transverse momentum Y({i}S)",f"Transverse momentum Y({i}S);"
+                    "p_{t} [MeV];Events", nbin_y, 0, 120), "Dimuon_pt")
+                h_y["Pseudorapidity"]=rdf_m_y.Histo1D(ROOT.RDF.TH1DModel(
+                    f"Pseudorapidity Y({i}S)", f"Pseudorapidity Y({i}S);#eta;"
+                    "Events", nbin_y, -eta_lim, eta_lim), "Dimuon_eta")
+                h_y["Azimuthal angle"]=rdf_m_y.Histo1D(ROOT.RDF.TH1DModel(
+                    f"Azimuthal angle Y({i}S)",f"Azimuthal angle Y({i}S);#phi "
+                    "[rad];Events", nbin_y, -3.5, 3.5), "Dimuon_phi")
+
+            # Do and save the histogram in the directory "Properties"
+                for j, (k, h) in enumerate(h_y.items()):
+                    h.GetXaxis().CenterTitle()
+                    h.GetYaxis().CenterTitle()
+                    h.GetXaxis().SetTitleSize(0.04)
+                    h.SetFillColorAlpha(601, .8)
+                    if j==0:
+                        os.chdir(os.path.abspath(os.path.join(os.sep,
+                            f'{os.getcwd()}', 'Properties')))
+                        c_prop.Print(f"Y({i}S) properties.pdf[", "pdf")
+                    logger.debug(f"Iteration on histograms number {j}")
+                    h.Draw()
+                    c_prop.Print(f"Y({i}S) properties.pdf", f"Title:Y({i}S) {k}")
+                    c_prop.SaveAs(f"Y({i}S) {k}.png")
+                c_prop.Print(f"Y({i}S) properties.pdf]", "pdf")
+
+                # Return in main directory
+                os.chdir(os.path.dirname(os. getcwd()))
+
+        else:
+            if particle=="Z":
+                eta_lim=10
+            # Plots for the other particles
+            n = rdf_m.Count().GetValue()
+            nbin = math.floor(ROOT.TMath.Sqrt(n))
+
+            # Create a dictonary with all histograms booked
+            h_p = {}
+            h_p["Transverse momentum"] = rdf_m.Histo1D(ROOT.RDF.TH1DModel(
+                f"Transverse momentum {name}",f"Transverse momentum {name};"
+                "p_{t} [MeV];Events", nbin, 0, 120), "Dimuon_pt")
+            h_p ["Pseudorapidity"]= rdf_m.Histo1D(ROOT.RDF.TH1DModel(
+                f"Pseudorapidity {name}",f"Pseudorapidity {name};#eta;Events",
+                nbin, -eta_lim, eta_lim), "Dimuon_eta")
+            h_p["Azimuthal angle"] = rdf_m.Histo1D(ROOT.RDF.TH1DModel(
+                f"Azimuthal angle {name}",f"Azimuthal angle {name};#phi [rad];"
+                "Events", nbin, -3.5, 3.5), "Dimuon_phi")
+
+            # Do and save the histograms in the directory "Properties"
+            for j, (k,h) in enumerate(h_p.items()):
+                h.GetXaxis().CenterTitle()
+                h.GetYaxis().CenterTitle()
+                h.GetXaxis().SetTitleSize(0.04)
+                h.SetFillColorAlpha(601, .8)
+                if j==0:
+                    os.chdir(os.path.abspath(os.path.join(os.sep,
+                        f'{os.getcwd()}','Properties')))
+                    c_prop.Print(f"{particle} properties.pdf[", "pdf")
+                h.Draw()
+                c_prop.Print(f"{particle} properties.pdf", f"Title:{particle} {k}")
+                c_prop.SaveAs(f"{particle} {k}.png")
+            c_prop.Print(f"{particle} properties.pdf]", "pdf")
+
+            # Return in main directory
+            os.chdir(os.path.dirname(os. getcwd()))
+
 
 
 if __name__ == "__main__":
@@ -697,19 +1081,28 @@ if __name__ == "__main__":
     # DIMUON MASS SPECTRUM
     os.makedirs("Spectra", exist_ok=True)
     logger.debug("The new directory \"Spectra\" is created")
-    mumu_spectrum(outfile_m, dimu_cached)
+    # mumu_spectrum(outfile_m, dimu_cached)
 
     # DIMUON ETA DISTRIBUTION
-    mumu_eta(outfile_m, dimu_cached)
+    # mumu_eta(outfile_m, dimu_cached)
 
     # RESONANCE'S FIT & PROPERTIES
     os.makedirs("Fit", exist_ok=True)
     os.makedirs("Properties", exist_ok=True)
     logger.debug("The new directories \"Fit\" and \"Properties\" are created")
 
+    # for part in args.particle:
+        # resonance_fit(outfile_m, part)
+        # resonance_prop(outfile_m, dimu_cached, part)
+
     for part in args.particle:
-        resonance_fit(outfile_m, part)
-        resonance_prop(outfile_m, dimu_cached, part)
+        try:
+            resonance_fit2(outfile_m, part)
+            resonance_prop2(outfile_m, dimu_cached, part)
+        except SyntaxError:
+            logger.error("Invalid argument! \nPossible arguments are:\"eta\", "
+                "\"rho\",\"omega\",\"phi\", \"J-psi\", \"psi'\", \"Y\", \"Z\" or"
+                " \"all\"")
 
     # Elapsed time
     logger.info(f" Elapsed time from the beginning is:"

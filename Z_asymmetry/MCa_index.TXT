@@ -1,2 +1,0 @@
-root://eospublic.cern.ch//eos/opendata/cms/derived-data/NanoAODRun1/01-Jul-22/MonteCarlo11_Summer11LegDR_DYJetsToLL_M-50_7TeV-madgraph-pythia6-tauola/70B5D830-BD5C-45B2-B411-C0A7DE77B3A6.root
-root://eospublic.cern.ch//eos/opendata/cms/derived-data/NanoAODRun1/01-Jul-22/MonteCarlo11_Summer11LegDR_DYJetsToLL_M-50_7TeV-madgraph-pythia6-tauola/FAA816E4-8CD7-459A-AB2F-D1A76876F900.root

@@ -14,4 +14,4 @@ E.g. for the Y(1S,2S,3S):
 
 E.g. for data of Run2012B-C_SingleMu:
 
-![Image](./Z_asymmetry/Plot/afb_y_all.png "icon")
+![Image](./Z_asymmetry/Plot/afb_y_data.png "icon")

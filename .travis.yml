@@ -8,6 +8,5 @@ install:
 # command to run tests
 script:
   - echo "TODO"
-
 os:
   - linux

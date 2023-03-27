@@ -19,7 +19,10 @@ The script takes as arguments:
     - (-t) the type of dataset to analyze. [E.g. "MC" or "data"]. This string
         has to be added for each data file insert with \"-f\".
 
-Furthermore, there are other optional arguments:
+(E.g.: python3 Z_asymmetry.py -f MC_index.txt Run2012B_SingleMu_merged_index.txt
+\\ Run2012C_SingleMu_merged_index.txt -t MC data data )
+
+Furthermore, there are other optional arguments in order to skip the analysis:
 
     - (-no--a) if we have already done the analysis to create a snapshot of the
         useful data (through \"z_main\"), we can then skip this step passing
@@ -32,10 +35,12 @@ Furthermore, there are other optional arguments:
         cos(theta*) distributions and also a plot comparison of the Afb values.
         It's necessary to have analyzed Monte Carlo and collected data previously.
 
+(E.g.: python3 Z_asymmetry.py -f MC_index.txt Run2012B_SingleMu_merged_index.txt
+\\ Run2012C_SingleMu_merged_index.txt -t MC data data -no--a -c)
+
 In the analysis the following software versions have been used:
 
     - Python v3.8
-
     - ROOT v6.24 ("source ~/root/bin/thisroot.sh" command needed before starting
         the analysis to set the environment of ROOT)
 
@@ -178,7 +183,7 @@ def z_main(url, iteration, run):
 
     # A snapshot is done to collect the useful physiscal quantity of the
     # dileptons in a root file and a node graph is saved.
-    ROOT.RDF.SaveGraph(rdf_cut, "rdf_main2.dot")
+    ROOT.RDF.SaveGraph(rdf_cut, "rdf_zmain.dot")
     rdf_cut.Snapshot("dimuon_w", snap_name, branchlist)
     logger.info(f" A snapshot of the good events named {snap_name} is done. ")
 
@@ -807,7 +812,7 @@ if __name__ == "__main__":
 
     # Move the snapshots in a dedicated directory
     if args.analysis is True:
-        for f in root_files:
+        for f in rfile_temp:
             os.replace(f'{os.getcwd()}/{f}', f'Snapshots/{f}')
 
     print(data)
