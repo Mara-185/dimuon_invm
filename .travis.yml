@@ -8,6 +8,6 @@ install:
 # command to run tests
 script:
   - echo "TODO"
-  - python3 test/tools_test.py
+  - pytest
 os:
   - linux
