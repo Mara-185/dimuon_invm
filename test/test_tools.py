@@ -63,7 +63,7 @@ class ZAsymmetryTest(unittest.TestCase):
         ROOT.gInterpreter.AddIncludePath('../Utils/tools.h')
         ROOT.gSystem.Load('../Utils/tools_cpp.so')
         pt, eta, phi, mass, charge = create_example()
-        dilepton = ROOT.tools.dilepton_vec(pt[0], eta[0], phi[0], mass[0], pt[1], \
+        dilepton = ROOT.tools_cpp.dilepton_vec(pt[0], eta[0], phi[0], mass[0], pt[1], \
             eta[1], phi[1], mass[1])
         self.assertAlmostEqual(dilepton[0], 34.4752, 4)
         self.assertAlmostEqual(dilepton[1], 2.87066, 4)
