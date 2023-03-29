@@ -17,6 +17,9 @@ import utils
 #Import shared library to test
 ROOT.gSystem.Load('../Utils/tools_cpp.so')
 
+# Create logger
+logger = utils.set_logger("Unit test", logging.DEBUG)
+
 
 def create_example():
     """Create a known example to test the functions."""
