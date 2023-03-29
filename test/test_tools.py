@@ -22,7 +22,7 @@ def create_example():
     """Create a known example to test the functions."""
 
     # Create a standard vector with transvers momentum values
-    pt = ROOT.std.vector("float")(2)
+    pt = ROOT.std.vector("float")()
     pt.emplace_back(57.2187)
     pt.emplace_back(31.1705)
 
