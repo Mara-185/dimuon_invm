@@ -8,5 +8,6 @@ install:
 # command to run tests
 script:
   - echo "TODO"
+  - tools_test.py
 os:
   - linux
