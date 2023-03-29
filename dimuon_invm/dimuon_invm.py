@@ -39,6 +39,9 @@ import time
 import ROOT
 
 # Add my modules to the path
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+os.chdir(ROOT_DIR)
+print(ROOT_DIR)
 sys.path.insert(0, os.path.abspath('../Utils'))
 import utils
 

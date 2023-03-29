@@ -8,6 +8,6 @@ install:
 # command to run tests
 script:
   - echo "TODO"
-  - python3 tools_test.py
+  - python3 test/tools_test.py
 os:
   - linux

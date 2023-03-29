@@ -9,6 +9,8 @@ import ROOT
 # pylint: disable=E1101 (7.92)
 
 # Add my modules to the path
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+os.chdir(ROOT_DIR)
 sys.path.insert(0, os.path.abspath('../Utils'))
 import utils
 
