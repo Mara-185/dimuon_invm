@@ -11,12 +11,15 @@ import ROOT
 # Add my modules to the path
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 os.chdir(ROOT_DIR)
+#Import shared library to test
+ROOT.gInterpreter.AddIncludePath('../Utils/tools.h')
+ROOT.gSystem.Load('../Utils/tools_cpp.so')
 sys.path.insert(0, os.path.abspath('../Utils'))
 import utils
 
 #Import shared library to test
-ROOT.gInterpreter.AddIncludePath('../Utils/tools.h')
-ROOT.gSystem.Load('../Utils/tools_cpp.so')
+# ROOT.gInterpreter.AddIncludePath('../Utils/tools.h')
+# ROOT.gSystem.Load('../Utils/tools_cpp.so')
 
 # Create logger
 logger = utils.set_logger("Unit test", logging.DEBUG)
@@ -63,7 +66,7 @@ class ZAsymmetryTest(unittest.TestCase):
         ROOT.gInterpreter.AddIncludePath('../Utils/tools.h')
         ROOT.gSystem.Load('../Utils/tools_cpp.so')
         pt, eta, phi, mass, charge = create_example()
-        dilepton = ROOT.tools_cpp.dilepton_vec(pt[0], eta[0], phi[0], mass[0], pt[1], \
+        dilepton = ROOT.dilepton_vec(pt[0], eta[0], phi[0], mass[0], pt[1], \
             eta[1], phi[1], mass[1])
         self.assertAlmostEqual(dilepton[0], 34.4752, 4)
         self.assertAlmostEqual(dilepton[1], 2.87066, 4)
