@@ -59,6 +59,9 @@ class ZAsymmetryTest(unittest.TestCase):
         """Test on \"dilepton_vec\" function."""
 
         logger.info("Test on \"dilepton_vec\" function...")
+        #Import shared library to test
+        ROOT.gInterpreter.AddIncludePath('../Utils/tools.h')
+        ROOT.gSystem.Load('../Utils/tools_cpp.so')
         pt, eta, phi, mass, charge = create_example()
         dilepton = ROOT.dilepton_vec(pt[0], eta[0], phi[0], mass[0], pt[1], \
             eta[1], phi[1], mass[1])
