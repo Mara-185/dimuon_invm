@@ -1,6 +1,6 @@
 dist: xenial   # required for Python >= 3.7
 language: python
-rvm:
+python:
   - "3.8"
 # command to install dependencies
 install:
