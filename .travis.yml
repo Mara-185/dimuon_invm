@@ -8,8 +8,10 @@ install:
 # command to run tests
 # before_script:
 #   - root_env.py
-import:
-  - source: root_env.yml
+# import:
+#   - source: root_env.yml
+before_install:
+  - source root/bin/thisroot.sh
 script:
   - echo "TODO"
   - pytest
