@@ -11,9 +11,10 @@ import ROOT
 # Add my modules to the path
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 os.chdir(ROOT_DIR)
+print(os.getcwd())
 #Import shared library to test
 ROOT.gInterpreter.AddIncludePath('../Utils/tools.h')
-ROOT.gSystem.Load('../Utils/tools_cpp.so')
+ROOT.gSystem.Load('Utils/tools_cpp.so')
 sys.path.insert(0, os.path.abspath('../Utils'))
 import utils
 
