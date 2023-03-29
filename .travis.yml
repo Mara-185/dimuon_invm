@@ -6,8 +6,10 @@ rvm:
 install:
   - pip install -r requirements.TXT
 # command to run tests
-before_script:
-  - root_env.py
+# before_script:
+#   - root_env.py
+import:
+  - source: root_env.yml
 script:
   - echo "TODO"
   - pytest
