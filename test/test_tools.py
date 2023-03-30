@@ -7,7 +7,7 @@ import sys
 import ROOT
 
 # pylint: disable=E1101
-# (7.92)
+# (8/10)
 
 # Add my modules to the path
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -20,7 +20,7 @@ ROOT.gInterpreter.AddIncludePath('../Utils/tools.h')
 ROOT.gSystem.Load('../Utils/tools_cpp.so')
 
 # Create logger
-#logger = utils.set_logger("Unit test", logging.DEBUG)
+logger = utils.set_logger("Unit test", logging.DEBUG)
 
 
 def create_example():
@@ -97,7 +97,7 @@ class ZAsymmetryTest(unittest.TestCase):
 if __name__ == "__main__":
 
     # Create logger
-    logger = utils.set_logger("Unit test", logging.DEBUG)
+    #logger = utils.set_logger("Unit test", logging.DEBUG)
     logger.info("Starting the tests...")
     # #Import shared library to test
     # ROOT.gSystem.Load('../Utils/tools_cpp.so')

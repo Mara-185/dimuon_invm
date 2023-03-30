@@ -51,7 +51,7 @@ import utils
 def leptons_analysis(url, outfile):
     """
     It takes in input a nano-AOD data file from which it selects interesting
-    muon pairs for further analysis. It also creates a root files, named
+    muon pairs for further analysis. It also creates a root file, named
     "dimuon_*run*.root" with four new useful quantities:
     ["Dimuon_mass", "Dimuon_pt", "Dimuon_eta", "Dimuon_phi"].
     It returns the RDataFrame cached in memory with the columns listed above.
@@ -116,7 +116,7 @@ def mumu_spectrum(infile, mu_cached=None):
     :param infile: name of data file
     :type infile: string
     :param mu_cached: data cached in memory
-    :type mu_cached: RDataFrame, NOT REQUIRED, default=None
+    :type mu_cached: RDataFrame, not required, default=None
 
     """
 
@@ -165,13 +165,13 @@ def mumu_spectrum(infile, mu_cached=None):
 def mumu_eta(infile, mu_cached=None):
     """
     It takes in input the root data file or data cached obtained by the function
-     "leptons_analysis" and plot the histogram of the dimuons pseudorapidity,
+    "leptons_analysis" and plot the histogram of the dimuons pseudorapidity,
     named \"dimuon_eta.png\".
 
     :param infile: name of data file
     :type infile: string
     :param mu_cached: data cached in memory
-    :type mu_cached: RDataFrame, NOT REQUIRED, default=None
+    :type mu_cached: RDataFrame, not required, default=None
 
     """
 
