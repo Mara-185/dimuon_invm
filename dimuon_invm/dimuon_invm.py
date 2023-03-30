@@ -210,8 +210,8 @@ def resonance_fit(infile, particle="all"):
     """
     It takes in input the root data file obtained by "leptons_analysis" and
     a string with the name of the resonance to fit (default value is \"all\",
-    so in this case all resonances are fitted). Possible arguments are: \"eta\",
-     \"rho\",\"omega\", \"phi\", \"J-psi\", \"psi'\", \"Y\", \"Z\", \"all\"."
+    so in this case all resonances are fitted). Possible arguments are:
+    \"eta\",\"rho\",\"omega\",\"phi\",\"J-psi\",\"psi'\",\"Y\",\"Z\",\"all\"."
     It creates a plot with the fitted data and a txt file with fit results of
     the chosen resonance(s).
     If the string passed as particle to fit is an invalid argument, the function
@@ -452,7 +452,7 @@ def resonance_prop(infile, mu_cached=None, particle="all"):
     :param infile: name of data root file
     :type infile: string, required
     :param mu_cached: data cached in memory
-    :type mu_cached: RDataFrame, NOT REQUIRED, default=None
+    :type mu_cached: RDataFrame, not required, default=None
     :param particle: name of the particle to fit
     :type particle: string, default="all"
 

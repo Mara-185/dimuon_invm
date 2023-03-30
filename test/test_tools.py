@@ -17,6 +17,7 @@ import utils
 
 #Import shared library to test
 ROOT.gInterpreter.AddIncludePath('../Utils/tools.h')
+ROOT.gInterpreter.ProcessLine('#include "tools.h"')
 ROOT.gSystem.Load('../Utils/tools_cpp.so')
 
 # Create logger
