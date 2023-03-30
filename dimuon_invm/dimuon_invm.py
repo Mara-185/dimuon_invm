@@ -4,7 +4,7 @@ The script takes as arguments:
 
     - (-f) the data file (URL) of dileptons (they have to be NanoAOD type), for
         example:"root://eospublic.cern.ch//eos/root-eos/cms_opendata_2012_nanoaod/
-        Run2012B_DoubleMuParked.root"; [REQUIRED]
+        Run2012B_DoubleMuParked.root";
     - (-p) the string of the particle's name to analyze and fit, among those
         in the dimuon spectrum, which are :
         "eta", "rho","omega", "phi", "J-psi", "psi'", "Y", "Z".
@@ -17,8 +17,8 @@ Furthermore, there are other optional arguments in order to skip the analysis:
     - (-no--a) if we have already done the analysis to create a snapshot of the
         useful data (through \"leptons_analysis\"), we can then skip this step
         passing this string as argument. But it's also necessary to pass the
-        the name of the data file, through the argument:
-    - (-o) the name of the output file created from a previous analysis.
+        the name of the data file, through the argument (-o).
+    - (-o) the name of the output root file created from a previous analysis.
 
 In the analysis the following version have been used:
 
@@ -41,22 +41,22 @@ import ROOT
 # Add my modules to the path
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 os.chdir(ROOT_DIR)
-print(ROOT_DIR)
 sys.path.insert(0, os.path.abspath('../Utils'))
 import utils
 
-# pylint: disable=E1101 (9.27)
+# pylint: disable=E1101
+# (9.16/10)
 
 
 def leptons_analysis(url, outfile):
     """
-    It takes in input a nano-AOD data file from which it selects couples of muons
-    which are interesting for further analysis. It also creates a root files,
-    named, "dimuon.root" with four new useful columns:
+    It takes in input a nano-AOD data file from which it selects interesting
+    muon pairs for further analysis. It also creates a root files, named
+    "dimuon_*run*.root" with four new useful quantities:
     ["Dimuon_mass", "Dimuon_pt", "Dimuon_eta", "Dimuon_phi"].
     It returns the RDataFrame cached in memory with the columns listed above.
 
-    :param url: url of the root file to upload from the web.
+    :param url: url of the root file to download from the web.
     :type url: url of root file, required.
     :param outfile: name of root file in output
     :type outfile: string, required
@@ -69,7 +69,7 @@ def leptons_analysis(url, outfile):
     root_file = ROOT.TFile.Open(url, "READ")
     tree_in = root_file.GetListOfKeys().At(0).GetName()
     rdf = ROOT.RDataFrame(tree_in, root_file)
-    logger.debug("The RDataFrame have been created.\n")
+    logger.debug("The RDataFrame has been created.\n")
 
     # Filter two muons with opposite charge
     rdf_mu = rdf.Filter("nMuon>1 && Muon_charge[0]!=Muon_charge[1]",
@@ -91,7 +91,7 @@ def leptons_analysis(url, outfile):
     logger.info("CutFlow muons:")
     rdf_mu.Report().Print()
 
-    # List with the names of the new columns to make a snapshot or to cache
+    # List with the names of the new columns
     branchlist_mu = ["Dimuon_mass", "Dimuon_pt", "Dimuon_eta", "Dimuon_phi"]
 
     # A snapshot is done to collect data in a single root file and they are also
@@ -109,12 +109,12 @@ def leptons_analysis(url, outfile):
 
 def mumu_spectrum(infile, mu_cached=None):
     """
-    It takes in input the root data file or the data cached, obtained by the
-    function "leptons_analysis" and plot the histogram of the dimuons invariant
-    mass.
+    It takes in input the root data file or data cached, obtained by the function
+     "leptons_analysis" and plot the histogram of the dimuons invariant mass,
+     named \"dimuon_spectrum.png\".
 
-    :param infile: name of data root file
-    :type infile: string, required
+    :param infile: name of data file
+    :type infile: string
     :param mu_cached: data cached in memory
     :type mu_cached: RDataFrame, NOT REQUIRED, default=None
 
@@ -155,8 +155,8 @@ def mumu_spectrum(infile, mu_cached=None):
     label.DrawLatex(0.485, 0.700, "Y(1, 2, 3S)")
     label.DrawLatex(0.795, 0.680, "Z")
 
-    # Save results in png in the folder "Spectra"
-    os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Spectra')))
+    # Save results in png in the folder "Spectrum"
+    os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Spectrum')))
     c_mu.SaveAs("dimuon_spectrum.png")
     os.chdir(os.path.dirname(os. getcwd()))
     logger.info("The plot \"dimuon_spectrum.png\" has been created.")
@@ -164,12 +164,12 @@ def mumu_spectrum(infile, mu_cached=None):
 
 def mumu_eta(infile, mu_cached=None):
     """
-    It takes in input the root data file or the data cached obtained by the
-    function "leptons_analysis" and plot the histogram of the dimuons
-    pseudorapidity, named \"dimuon_eta.png\".
+    It takes in input the root data file or data cached obtained by the function
+     "leptons_analysis" and plot the histogram of the dimuons pseudorapidity,
+    named \"dimuon_eta.png\".
 
-    :param infile: name of data root file
-    :type infile: string, required
+    :param infile: name of data file
+    :type infile: string
     :param mu_cached: data cached in memory
     :type mu_cached: RDataFrame, NOT REQUIRED, default=None
 
@@ -179,11 +179,11 @@ def mumu_eta(infile, mu_cached=None):
     if mu_cached is None:
         t_name = infile.replace(".root", "")
         rdf = ROOT.RDataFrame(t_name,infile)
-        h_eta = rdf.Filter("Dimuon_pt>20").Histo1D(ROOT.RDF.TH1DModel(
-            "Dimuon eta", "Dimuon eta", 160, -4, 4), "Dimuon_eta")
+        h_eta = rdf.Histo1D(ROOT.RDF.TH1DModel("Dimuon eta", "Dimuon eta",
+            160, -4, 4), "Dimuon_eta")
     else:
-        h_eta = mu_cached.Filter("Dimuon_pt>20").Histo1D(ROOT.RDF.TH1DModel(
-            "Dimuon eta", "Dimuon eta", 160, -4, 4), "Dimuon_eta")
+        h_eta = mu_cached.Histo1D(ROOT.RDF.TH1DModel("Dimuon eta", "Dimuon eta",
+            160, -4, 4), "Dimuon_eta")
 
     # Styling
     ROOT.gStyle.SetOptStat("e")
@@ -199,8 +199,8 @@ def mumu_eta(infile, mu_cached=None):
     h_eta.SetFillColorAlpha(601, .8)
     h_eta.Draw()
 
-    # Save results in pdf and png in the folder "Spectra"
-    os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Spectra')))
+    # Save results in png in the folder "Spectrum"
+    os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Spectrum')))
     c_eta.SaveAs("dimuon_eta.png")
     os.chdir(os.path.dirname(os. getcwd()))
     logger.info("The plot \"dimuon_eta.png\" has been created.")
@@ -208,7 +208,7 @@ def mumu_eta(infile, mu_cached=None):
 
 def resonance_fit(infile, particle="all"):
     """
-    It takes in input the root data file obtained with "leptons_analysis" and
+    It takes in input the root data file obtained by "leptons_analysis" and
     a string with the name of the resonance to fit (default value is \"all\",
     so in this case all resonances are fitted). Possible arguments are: \"eta\",
      \"rho\",\"omega\", \"phi\", \"J-psi\", \"psi'\", \"Y\", \"Z\", \"all\"."
@@ -217,10 +217,10 @@ def resonance_fit(infile, particle="all"):
     If the string passed as particle to fit is an invalid argument, the function
     raise a SyntaxError.
 
-    :param infile: Data file to analyze
-    :type infile: root file, required
+    :param infile: name of data file to analyze
+    :type infile: string, required
     :param particle: name of the particle to fit
-    :type particle: string, REQUIRED, default="all"
+    :type particle: string, default="all"
 
     """
 
@@ -241,6 +241,7 @@ def resonance_fit(infile, particle="all"):
     bkg = "Chebychev"
     arguments = ["eta", "rho", "omega", "phi", "J-psi", "psi'", "Y", "Z"]
 
+    # Check on input arguments
     if particle=="all":
         for p in arguments:
             resonance_fit(infile, p)
@@ -474,7 +475,7 @@ def resonance_prop(infile, mu_cached=None, particle="all"):
     # Check on input arguments
     if particle=="all":
         for p in arguments:
-            resonance_fit(infile, p)
+            resonance_prop(infile, mu_cached,p)
     elif particle not in arguments:
         raise SyntaxError
     elif particle!="all":
@@ -493,14 +494,9 @@ def resonance_prop(infile, mu_cached=None, particle="all"):
         c_prop.SetGrid()
         ROOT.gStyle.SetOptStat("e")
 
-        #eta_lim=3.5
-        eta_max = rdf_m.Max("Dimuon_eta").GetValue()
-        eta_lim = eta_max+(0.02*eta_max)
-        print(eta_lim)
 
         # Properties for the three Y resonances
         if particle=="Y":
-            eta_lim=6
             for i in range(1, 4, 1):
                 # Retrieve values of mass range and do the cuts
                 lower_mass_edge = utils.PARTICLES_MASS_RANGE[f"Y{i}"][0]
@@ -509,7 +505,7 @@ def resonance_prop(infile, mu_cached=None, particle="all"):
                     &&(Dimuon_mass<={upper_mass_edge})", f"Y cut{i}S")
 
                 n = rdf_m_y.Count().GetValue()
-                nbin_y = math.floor(ROOT.TMath.Sqrt(n))/2
+                nbin_y = math.floor(ROOT.TMath.Sqrt(n)/2)
 
                 # Create a dictonary with all histograms booked
                 h_y = {}
@@ -518,7 +514,7 @@ def resonance_prop(infile, mu_cached=None, particle="all"):
                     "p_{t} [MeV];Events", nbin_y, 0, 120), "Dimuon_pt")
                 h_y["Pseudorapidity"]=rdf_m_y.Histo1D(ROOT.RDF.TH1DModel(
                     f"Pseudorapidity Y({i}S)", f"Pseudorapidity Y({i}S);#eta;"
-                    "Events", nbin_y, -eta_lim, eta_lim), "Dimuon_eta")
+                    "Events", nbin_y, -5.5, 5.5), "Dimuon_eta")
                 h_y["Azimuthal angle"]=rdf_m_y.Histo1D(ROOT.RDF.TH1DModel(
                     f"Azimuthal angle Y({i}S)",f"Azimuthal angle Y({i}S);#phi "
                     "[rad];Events", nbin_y, -3.5, 3.5), "Dimuon_phi")
@@ -528,12 +524,11 @@ def resonance_prop(infile, mu_cached=None, particle="all"):
                     h.GetXaxis().CenterTitle()
                     h.GetYaxis().CenterTitle()
                     h.GetXaxis().SetTitleSize(0.04)
-                    h.SetFillColorAlpha(601, .8)
+                    h.SetFillColorAlpha(601, .9)
                     if j==0:
                         os.chdir(os.path.abspath(os.path.join(os.sep,
                             f'{os.getcwd()}', 'Properties')))
                         c_prop.Print(f"Y({i}S) properties.pdf[", "pdf")
-                    logger.debug(f"Iteration on histograms number {j}")
                     h.Draw()
                     c_prop.Print(f"Y({i}S) properties.pdf", f"Title:Y({i}S) {k}")
                     c_prop.SaveAs(f"Y({i}S) {k}.png")
@@ -541,11 +536,14 @@ def resonance_prop(infile, mu_cached=None, particle="all"):
 
                 # Return in main directory
                 os.chdir(os.path.dirname(os. getcwd()))
-
         else:
             # Plots for the other particles
             n = rdf_m.Count().GetValue()
-            nbin = math.floor(ROOT.TMath.Sqrt(n))/2
+            nbin = math.floor(ROOT.TMath.Sqrt(n)/2)
+
+            # Range of rapidity
+            eta_max = rdf_m.Max("Dimuon_eta").GetValue()
+            eta_lim = eta_max+(0.02*eta_max)
 
             # Create a dictonary with all histograms booked
             h_p = {}
@@ -564,132 +562,7 @@ def resonance_prop(infile, mu_cached=None, particle="all"):
                 h.GetXaxis().CenterTitle()
                 h.GetYaxis().CenterTitle()
                 h.GetXaxis().SetTitleSize(0.04)
-                h.SetFillColorAlpha(601, .8)
-                if j==0:
-                    os.chdir(os.path.abspath(os.path.join(os.sep,
-                        f'{os.getcwd()}','Properties')))
-                    c_prop.Print(f"{particle} properties.pdf[", "pdf")
-                h.Draw()
-                c_prop.Print(f"{particle} properties.pdf", f"Title:{particle} {k}")
-                c_prop.SaveAs(f"{particle} {k}.png")
-            c_prop.Print(f"{particle} properties.pdf]", "pdf")
-
-            # Return in main directory
-            os.chdir(os.path.dirname(os. getcwd()))
-
-
-def resonance_prop2(infile, mu_cached=None, particle="all"):
-    """
-    The function creates different plots of the main properties of the
-    resonances such as transverse momentum, pseudorapidity and azimuthal angle.
-    It takes in input the root data file or the data cached obtained by the
-    function "leptons_analysis" and a string with the name of the resonance;
-    the default value is "all", in this case plots of all resonances' properties
-    are created.
-    If the string passed as particle is an invalid argument, the function raise
-    a SyntaxError.
-
-    :param infile: name of data root file
-    :type infile: string, required
-    :param mu_cached: data cached in memory
-    :type mu_cached: RDataFrame, NOT REQUIRED, default=None
-    :param particle: name of the particle to fit
-    :type particle: string, default="all"
-
-    """
-
-    # Cuts on pt
-    pt_cut_inf = 0
-    pt_cut_sup = 120
-
-    # Rdataframe with useful cuts is created.
-    if mu_cached is None:
-        t_name = infile.replace(".root", "")
-        rdf = ROOT.RDataFrame(t_name,infile)
-        rdf_cut=rdf.Filter(f" Dimuon_pt>{pt_cut_inf} && Dimuon_pt<{pt_cut_sup}")
-    else:
-        rdf_cut=mu_cached.Filter(f" Dimuon_pt>{pt_cut_inf} && Dimuon_pt<{pt_cut_sup}")
-
-    arguments = ["eta", "rho", "omega", "phi", "J-psi", "psi'", "Y", "Z"]
-
-    # Check on input arguments
-    if particle=="all":
-        for p in arguments:
-            resonance_fit(infile, p)
-    elif particle not in arguments:
-        raise SyntaxError
-    elif particle!="all":
-        logger.info(f"Plot properties of particle {particle}...")
-
-        # Retrieve values of mass range for each particle
-        lower_mass_edge = utils.PARTICLES_MASS_RANGE[f"{particle}"][0]
-        upper_mass_edge = utils.PARTICLES_MASS_RANGE[f"{particle}"][1]
-        rdf_m = rdf_cut.Filter(f" Dimuon_mass>={lower_mass_edge} \
-            && Dimuon_mass<={upper_mass_edge}", f"{particle} cut")
-
-        # Styling
-        name = utils.FIT_INIT_PARAM[f"{particle}"][6]
-        c_prop = ROOT.TCanvas()
-        c_prop.UseCurrentStyle()
-        c_prop.SetGrid()
-        ROOT.gStyle.SetOptStat("e")
-
-        #eta_lim=3.5
-        eta_max = rdf_m.Max("Dimuon_eta").GetValue()
-        eta_lim = eta_max+(0.02*eta_max)
-        print(eta_lim)
-
-        # Properties for the three Y resonances
-        if particle=="Y":
-            eta_lim=6
-            for i in range(1, 4, 1):
-                # Retrieve values of mass range and do the cuts
-                lower_mass_edge = utils.PARTICLES_MASS_RANGE[f"Y{i}"][0]
-                upper_mass_edge = utils.PARTICLES_MASS_RANGE[f"Y{i}"][1]
-                rdf_m_y = rdf_m.Filter(f"(Dimuon_mass>={lower_mass_edge})\
-                    &&(Dimuon_mass<={upper_mass_edge})", f"Y cut{i}S")
-
-                n = rdf_m_y.Count().GetValue()
-                nbin_y = math.floor(ROOT.TMath.Sqrt(n))/2
-
-                # Create a dictonary with all histograms booked
-                h_p = {}
-                h_p["Transverse momentum"]=rdf_m_y.Histo1D(ROOT.RDF.TH1DModel(
-                    f"Transverse momentum Y({i}S)",f"Transverse momentum Y({i}S);"
-                    "p_{t} [MeV];Events", nbin_y, 0, 120), "Dimuon_pt")
-                h_p["Pseudorapidity"]=rdf_m_y.Histo1D(ROOT.RDF.TH1DModel(
-                    f"Pseudorapidity Y({i}S)", f"Pseudorapidity Y({i}S);#eta;"
-                    "Events", nbin_y, -eta_lim, eta_lim), "Dimuon_eta")
-                h_p["Azimuthal angle"]=rdf_m_y.Histo1D(ROOT.RDF.TH1DModel(
-                    f"Azimuthal angle Y({i}S)",f"Azimuthal angle Y({i}S);#phi "
-                    "[rad];Events", nbin_y, -3.5, 3.5), "Dimuon_phi")
-
-
-            # Do and save the histogram in the directory "Properties"
-                for j, (k, h) in enumerate(h_y.items()):
-                    h.GetXaxis().CenterTitle()
-                    h.GetYaxis().CenterTitle()
-                    h.GetXaxis().SetTitleSize(0.04)
-                    h.SetFillColorAlpha(601, .8)
-                    if j==0:
-                        os.chdir(os.path.abspath(os.path.join(os.sep,
-                            f'{os.getcwd()}', 'Properties')))
-                        c_prop.Print(f"Y({i}S) properties.pdf[", "pdf")
-                    logger.debug(f"Iteration on histograms number {j}")
-                    h.Draw()
-                    c_prop.Print(f"Y({i}S) properties.pdf", f"Title:Y({i}S) {k}")
-                    c_prop.SaveAs(f"Y({i}S) {k}.png")
-                c_prop.Print(f"Y({i}S) properties.pdf]", "pdf")
-
-                # Return in main directory
-                os.chdir(os.path.dirname(os. getcwd()))
-
-            # Do and save the histograms in the directory "Properties"
-            for j, (k,h) in enumerate(h_p.items()):
-                h.GetXaxis().CenterTitle()
-                h.GetYaxis().CenterTitle()
-                h.GetXaxis().SetTitleSize(0.04)
-                h.SetFillColorAlpha(601, .8)
+                h.SetFillColorAlpha(601, .9)
                 if j==0:
                     os.chdir(os.path.abspath(os.path.join(os.sep,
                         f'{os.getcwd()}','Properties')))
@@ -726,8 +599,8 @@ if __name__ == "__main__":
     myStyle.cd()
 
     # Enable parallel analysis
-    nthreads = 4                                                                # (60-70% CPU)
-    ROOT.ROOT.EnableImplicitMT(nthreads)
+    N_THREADS = 4                                                                # (60-70% CPU)
+    ROOT.ROOT.EnableImplicitMT(N_THREADS)
 
     # Start the the timer
     start = time.time()
@@ -744,7 +617,7 @@ if __name__ == "__main__":
             " \"Y\",\"Z\", \"all\". Put the chosen string in quotes.")
     parser.add_argument("-no--a", "--analysis", required=False, action="store_false",
         default=True, help="If True, retrieve the data file from web and "
-        "does the selection. Otherwise it uses the \"dimuon.root\" file, "
+        "does the selection. Otherwise it uses the \"dimuon_*run*.root\" file, "
         "creted in a previous run of the script. Of course in this case, it's "
         "needed to create the snapshot of the data before." )
     parser.add_argument("-o", "--outfile", required=False, type=str,
@@ -774,7 +647,7 @@ if __name__ == "__main__":
                 f"the path of the data files! \n {ex}")
             sys.exit(1)
         else:
-            outfile_m = args.file[s+1:]
+            outfile_m = f"dimuon_{args.file[s+1:]}"
             dimu_cached = leptons_analysis(f"{args.file}", outfile_m)
     else:
         if not os.path.isfile(args.outfile):
@@ -784,12 +657,12 @@ if __name__ == "__main__":
         outfile_m = args.outfile
 
     # DIMUON MASS SPECTRUM
-    os.makedirs("Spectra", exist_ok=True)
-    logger.debug("The new directory \"Spectra\" is created")
-    # mumu_spectrum(outfile_m, dimu_cached)
+    os.makedirs("Spectrum", exist_ok=True)
+    logger.debug("The new directory \"Spectrum\" is created")
+    mumu_spectrum(outfile_m, dimu_cached)
 
     # DIMUON ETA DISTRIBUTION
-    # mumu_eta(outfile_m, dimu_cached)
+    mumu_eta(outfile_m, dimu_cached)
 
     # RESONANCE'S FIT & PROPERTIES
     os.makedirs("Fit", exist_ok=True)
@@ -798,10 +671,10 @@ if __name__ == "__main__":
 
     for part in args.particle:
         try:
-            resonance_fit(outfile_m, part)
+            #resonance_fit(outfile_m, part)
             resonance_prop(outfile_m, dimu_cached, part)
         except SyntaxError:
-            logger.error(f"Invalid argument: {part}! \nPossible arguments are:"
+            logger.error(f"Invalid argument: \"{part}\"!\nPossible arguments are:"
                 "\"eta\", \"rho\",\"omega\",\"phi\", \"J-psi\", \"psi'\", \"Y\","
                 " \"Z\" or \"all\"")
 

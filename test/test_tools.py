@@ -6,7 +6,8 @@ import os
 import sys
 import ROOT
 
-# pylint: disable=E1101 (7.92)
+# pylint: disable=E1101
+# (7.92)
 
 # Add my modules to the path
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -64,7 +65,7 @@ class ZAsymmetryTest(unittest.TestCase):
 
         logger.info("Test on \"dilepton_vec\" function...")
         pt, eta, phi, mass, charge = create_example()
-        dilepton = ROOT.tools_cpp.dilepton_vec(pt[0], eta[0], phi[0], mass[0], pt[1], \
+        dilepton = dilepton_vec(pt[0], eta[0], phi[0], mass[0], pt[1], \
             eta[1], phi[1], mass[1])
         self.assertAlmostEqual(dilepton[0], 34.4752, 4)
         self.assertAlmostEqual(dilepton[1], 2.87066, 4)

@@ -8,7 +8,7 @@ twelve mass bins:
 
     [60, 70, 78, 84, 87, 89, 91, 93, 95, 98, 104, 112, 120];
 
-    - Rapidity bins of equal size for \|rapidity\| < 2.4:
+    - Rapidity bins of equal size in \|rapidity\| < 2.4:
 
     [0, 0.4, 0.8, 1.2, 1.6, 2.0, 2.4]
 
@@ -17,10 +17,13 @@ The script takes as arguments:
     - (-f) the txt files (they must finished with \"*_index.txt\") with the url
         of the root data files to analyze. They have to be NanoAOD type.
     - (-t) the type of dataset to analyze. [E.g. "MC" or "data"]. This string
-        has to be added for each data file insert with \"-f\".
+        has to be added for each data file insert by \"-f\".
+    - (-c) this argument can be passed to make the comparison plots of mass and
+        cos(theta*) distributions and also a plot comparison of the Afb values.
+        It's necessary to have analyzed Monte Carlo and collected data previously.
 
 (E.g.: python3 Z_asymmetry.py -f MC_index.txt Run2012B_SingleMu_merged_index.txt
-\\ Run2012C_SingleMu_merged_index.txt -t MC data data )
+\\ Run2012C_SingleMu_merged_index.txt -t MC data data -c)
 
 Furthermore, there are other optional arguments in order to skip the analysis:
 
@@ -31,14 +34,9 @@ Furthermore, there are other optional arguments in order to skip the analysis:
         run w/o \"-no--a\", the names of the snapshots created are wrote down
         in it), and it takes the root files from the directory named "Snapshots".
 
-    - (-c) this argument can be passed to make the comparison plots of mass and
-        cos(theta*) distributions and also a plot comparison of the Afb values.
-        It's necessary to have analyzed Monte Carlo and collected data previously.
+(E.g.: python3 Z_asymmetry.py -no--a -c)
 
-(E.g.: python3 Z_asymmetry.py -f MC_index.txt Run2012B_SingleMu_merged_index.txt
-\\ Run2012C_SingleMu_merged_index.txt -t MC data data -no--a -c)
-
-In the analysis the following software versions have been used:
+In the analysis the following versions have been used:
 
     - Python v3.8
     - ROOT v6.24 ("source ~/root/bin/thisroot.sh" command needed before starting
@@ -57,11 +55,11 @@ import numpy as np
 # Add my modules to the path
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 os.chdir(ROOT_DIR)
-print(ROOT_DIR)
 sys.path.insert(0, os.path.abspath('../Utils'))
 import utils
 
-# pylint: disable=E1101 (9.23)
+# pylint: disable=E1101
+# (9.39)
 
 # Array with mass and eta bin values
 MASS_BIN = np.array([60, 70, 78, 84, 87, 89, 91, 93, 95, 98, 104, 112, 120],
@@ -73,25 +71,24 @@ RAPIDITY_BIN=np.array([0, .4, .8, 1.2, 1.6, 2.0, 2.4], dtype=float)
 def retrieve_dataset(findex, type_d):
     """
     The function takes as argument the file index with all name of root files
-    of the chosen dataset to analyze, and its type (e.g. "MC" or "data").
-    (The file index of the chosen dataset has to be downloaded or created
-    manually.)
+    of the chosen dataset to analyze and its type (e.g. "MC" or "data").
+    (The file index has to be downloaded or created manually.)
     Three lists and a standard vector are returned in order to save the time
     needed to analyze each file, its number of events, the name of the
-    snapshot created in the "z_main" function and their types.
+    snapshot created in the "z_main" function and its type.
 
     :param findex: index of root files which make up the entire dataset
     :type findex: string of txt file, required
     :param type_d: type of file (e.g. "MC" or "data")
-    :type type_d string, required
-    :return files: list of the files name analyzed.
+    :type type_d: string, required
+    :return files: list of the analyzed files
     :rtype files: standard vector of string
-    :return times: list of time elpased analyzing each file
-    :rtype times: list
-    :return N: list of events analyzed for each file
-    :rtype N: list
-    :return N: list of events analyzed for each file
-    :rtype N: list
+    :return timef: list of time elpased analyzing each file
+    :rtype timef: list
+    :return Nf: list of events analyzed for each file
+    :rtype Nf: list
+    :return typef: list of data types
+    :rtype typef: list
 
     """
 
@@ -127,7 +124,7 @@ def z_main(url, iteration, run):
     The function create an RDataFrame to make the selection of the good events
     for the analysis, to compute some useful quantities and store them in new
     columns. It returns the string of the root file created by a snapshot only
-    of the columns needed.
+    with the columns needed.
 
     :param url: url of the root file to upload from the web.
     :type url: url of root file, required.
@@ -157,7 +154,8 @@ def z_main(url, iteration, run):
         Define("Mu_pt","Muon_pt[mask]").Define("Mu_eta","Muon_eta[mask]").\
         Define("Mu_mass","Muon_mass[mask]").Define("Mu_phi","Muon_phi[mask]").\
         Define("Mu_charge", "Muon_charge[mask]").\
-        Filter(" Mu_pt[0]>25 && Mu_pt[1]>15","Trigger on leading muon and next pt").\
+        Filter("Mu_pt[0]>25 && Mu_pt[1]>15","Trigger on leading and next leading"
+            " muon pt").\
         Filter("Mu_charge[0]!=Mu_charge[1]","Selection on opposite charge").\
         Define("Dimuon_mass","dilepton_vec(Mu_pt[0], Mu_eta[0], Mu_phi[0], \
             Mu_mass[0], Mu_pt[1], Mu_eta[1], Mu_phi[1], Mu_mass[1])[3]").\
@@ -199,19 +197,19 @@ def cos_eta(rdf_all_c, data_type, pt_lim=(0,120), infile=None):
     """
     Plot the cos of Z resonance (mass range from 60 GeV to 120 GeV), in the six
     different range of rapidity. It also make a cut on pt.
-    Plot is saved as "Dimuon_cos[y(rap_inf,rap_sup),pt(pt_inf,pt_sup)]_*dtype.png"
+    Plot is saved as "Dimuon_cos[y(rap_inf,rap_sup),pt(pt_inf,pt_sup)]_*dtype*.png"
     in a directory named "Plot".
-    It also creates a root file containg all histograms, named \"hcos_*dtype.root\",
+    It also creates a root file containg all histograms, named \"hcos_*dtype*.root\",
     useful for further comparison between Monte Carlo and data.
-    Data can be passed as RDataFrame or as root file, but in the last case the
-    name of the TTree has to be the same of the file.
+    Data can be passed as RDataFrame or as root file (in the last case the name
+    of the TTree stored has to be the same of the file).
 
     :param rdf_all_c: RDataFrame to analyze.
     :type rdf_all_c: RDataFrame, required
-    :param data_type: type of dataset analyzied
+    :param data_type: type of dataset analyzed
     :type data_type: string, required
     :param pt_lim: range limits of transverse momentum
-    :type pt_lim: tuple, required, , default=(0,120)
+    :type pt_lim: tuple, default=(0,120)
     :param infile: data file
     :type infile: root file, not required
 
@@ -275,15 +273,15 @@ def mass_eta(rdf_all_m, data_type, pt_lim = (0,120), infile=None):
     in a directory named "Plot".
     It also creates a root file containg all histograms, named \"hmass_*dtype.root\",
     useful for further comparison between Monte Carlo and data.
-    Data can be passed as RDataFrame or as root file, but in the last case the
-    name of the TTree has to be the same of the file.
+    Data can be passed as RDataFrame or as root file (in the last case the name
+    of the TTree stored has to be the same of the file).
 
     :param rdf_all_m: RDataFrame to analyze.
     :type rdf_all_m: RDataFrame, required
     :param data_type: type of dataset analyzied
     :type data_type: string, required
     :param pt_lim: range limits of transverse momentum
-    :type pt_lim: tuple, required, default=(0,120)
+    :type pt_lim: tuple, default=(0,120)
     :param infile: data file
     :type infile: root file, not required
 
@@ -340,19 +338,19 @@ def mass_eta(rdf_all_m, data_type, pt_lim = (0,120), infile=None):
 
 def afb(rdf_all, data_type, pt_lim=(0,120)):
     """
-    The function calculates the value of Afb (Asymmetry forward-backward)
+    The function calculates the value of Afb (Forward-backward Asymmetry)
     using the \"angular event weighting\" in the six different ranges of
-    rapidity, for each bin mass and plot results for each range rapidity.
-    It creates six different plots for each rapidity range
+    rapidity for each bin mass.
+    It creates six different plots (one for each rapidity range)
     (named \"Afb[y(rap_inf,rap_sup),pt(pt_inf,pt_sup)]_*dype.png\") and a plot
     with all of them (named \"afb_y_*dtype.png\").
 
     :param rdf_all: RDataframe to compute Afb
     :type rdf_all: RDataFrame, required
-    :param data_type: type of dataset analyzied
+    :param data_type: type of dataset analyzed
     :type data_type: string, required
     :param pt_lim: range limits of pt
-    :type pt_lim: tuple, required
+    :type pt_lim: tuple
 
     """
 
@@ -490,11 +488,11 @@ def afb(rdf_all, data_type, pt_lim=(0,120)):
 
 def comparison_cos(mc_file, data_file):
     """
-    The function retrieves the histograms of Cos(theta*) obtained by \"cos_eta()\"
-    function, for Monte Carlo and data. So, it's necessary to previously run the
-    analysis for both. It rescale the entries of Monte Carlo with the data ones
+    The function takes the histograms of Cos(theta*) obtained by \"cos_eta()\"
+    function, for Monte Carlo and data. So previously, it's necessary to run the
+    analysis for both. It rescales the entries of Monte Carlo with the data ones
     and plot both in the same canvas.
-    Plots are named \"MC_data_cos(rap_inf,rap_sup).png\"
+    Plots are named \"MC_data_cos(rap_inf,rap_sup).png\".
 
     :param mc_file: file containing histograms from MC
     :type mc_file: root file, required
@@ -509,7 +507,7 @@ def comparison_cos(mc_file, data_file):
         f_all = ROOT.TFile(data_file)
     except OSError:
         logger.error("Root files containing histograms don't exist. Maybe you "
-            "have to run the analysis first (w/o \"-no--a\" as argument.)")
+            "have to run the analysis first (w/o \"-no--a\" as argument).")
         sys.exit()
 
     c_cc = ROOT.TCanvas("MC+data_cos", "MC+data_cos")
@@ -545,17 +543,18 @@ def comparison_cos(mc_file, data_file):
         c_cc.SaveAs(f"MC_data_cos({RAPIDITY_BIN[i]},{RAPIDITY_BIN[i+1]}).png")
 
     c_cc.Print("MC_data_cos.pdf]",f"Title:({RAPIDITY_BIN[i]},{RAPIDITY_BIN[i+1]})")
+
     # Close files
     f_mc.Close()
     f_all.Close()
     logger.info("Plots with the comparison between data and MC cos(theta*) "
-        "distribution have been saved.")
+        "distributions have been saved.")
 
 def comparison_mass(mc_file, data_file):
     """
-    The function retrieves the histograms of Mass obtained by \"mass_eta()\"
-    function, for Monte Carlo and data. So, it's necessary to previously run the
-    analysis for both. It rescale the entries of Monte Carlo with the data ones
+    The function takes the histograms of Mass obtained by \"mass_eta()\"
+    function, for Monte Carlo and data. So previously, it's necessary to run the
+    analysis for both. It rescales the entries of Monte Carlo with the data ones
     and plot both in the same canvas.
     Plots are named \"MC_data_cos(rap_inf,rap_sup).png\"
 
@@ -614,9 +613,9 @@ def comparison_mass(mc_file, data_file):
 
 def comparison_afb(mc_file, data_file):
     """
-    The function retrieves the histograms of Mass obtained by \"mass_eta()\"
-    function, for Monte Carlo and data. So, it's necessary to previously run the
-    analysis for both. It rescale the entries of Monte Carlo with the data ones
+    The function takes the histograms of Afb obtained by \"afb()\" function,
+    for Monte Carlo and data. So previously, it's necessary to  run the analysis
+    for both. It rescales the entries of Monte Carlo with the data ones
     and plot both in the same canvas.
     Plots are named \"MC_data_cos(rap_inf,rap_sup).png\"
 
@@ -651,11 +650,11 @@ def comparison_afb(mc_file, data_file):
         h_mc.Draw("SAME")
         ROOT.gStyle.SetOptStat("mr")
         h_max = h_mc.GetMaximum()
-        h_min = h_mc.GetMinimum()
-        h_mc.SetAxisRange(h_min-(0.3*abs(h_min)), h_max+(0.3*h_max), "Y")
-        h_mc.SetMarkerColorAlpha(ROOT.kAzure+2, .7)
-        h_all.SetMarkerColorAlpha(ROOT.kBlack, 1)
-        h_all.SetMarkerSize(.8)
+        h_min = h_all.GetMinimum()
+        h_all.SetAxisRange(h_min-(0.55*abs(h_min)), h_max+(0.45*h_max), "Y")
+        h_mc.SetMarkerColorAlpha(ROOT.kAzure+2, .8)
+        h_mc.SetMarkerStyle(ROOT.kFullTriangleUp)
+        h_all.SetMarkerColor(ROOT.kBlack)
         leg = ROOT.TLegend(0.1, 0.8, 0.3, 0.9)
         leg.AddEntry(h_mc, "Monte Carlo", "p")
         leg.AddEntry(h_all, "Data", "p")
@@ -703,23 +702,22 @@ if __name__ == "__main__":
 
     # Creating the parser
     parser = argparse.ArgumentParser(description = "Processing the root file of data.")
-    parser.add_argument("-f", "--file",required=True, type=str, nargs="+",
-        help="The name of the file index to pass to the script. "
-             "It has to contain the path of the different root files to analyze,"
-             "which are part of the dataset.E.g.:\"Run2012B_SingleMu_index.txt\""
+    parser.add_argument("-f", "--file", type=str, nargs="+",
+        help="The name of the file index which contains the path of the different"
+             " root files to analyze. E.g.:\"Run2012B_SingleMu_index.txt\""
              "Put the string \"_index\" before the extension \".txt\".")
-    parser.add_argument("-t", "--d_type",required=True, type=str, nargs="+",
+    parser.add_argument("-t", "--d_type", type=str, nargs="+",
         help="The type of data to analyzed. In this analysis this parameter is "
              "intended to be among \"MC (Monte Carlo)\" and \"data (actual data)\".")
     parser.add_argument("-no--a", "--analysis", action="store_false",
         default=True, help="If True, retrieve data from internet, otherwise not."
-        "Default value is True. The range of files selected must be already "
-        "analyzed!! Otherwise the script don't consider them.")
+        "If False, it takes data files already analyzed (from the directory "
+        "\"Snapshot\") and listed in \Analyzed_files.txt\".Default value is True.")
     parser.add_argument("-c", "--comparison", action="store_true",
-        default=False, help="If True, it runs the function \"comparison_cos\" and"
-        "\"comparison_mass\" in order to make plots with the comparison between"
-        "MC and actual data. It's necessary to have run previously the functions "
-        "\"cos_eta\", \"mass_eta\" and \"afb\" separatly on them.")
+        default=False, help="If True, it runs the functions that make plots with"
+        " the comparison between MC and actual data (cos(theta*), mass and Afb "
+        "distributions). It's necessary to have run the functions \"cos_eta\", "
+        "\"mass_eta\" and \"afb\" separatly on them.")
     args = parser.parse_args()
 
     # Creating the logger
@@ -735,8 +733,8 @@ if __name__ == "__main__":
     logger.debug(" The new directories \"Plot\" and \"Snapshots\" are created.")
 
     # Enable the multi-threading analysis
-    nthreads = 8
-    ROOT.ROOT.EnableImplicitMT(nthreads)
+    N_THREADS = 8
+    ROOT.ROOT.EnableImplicitMT(N_THREADS)
 
     # Retrieve dataset from the web and start the selection on good events.
     if args.analysis is True:
@@ -750,7 +748,6 @@ if __name__ == "__main__":
             times+=ftime
             N_times+=N_time
             dtypes+=dtypef
-            print(f, ty)
         with open("Analyzed_files.txt", "w+", encoding="utf-8") as outf1:
             print("file/C:type/C", file=outf1)
             for r, tye in zip(root_files, dtypes):
@@ -764,29 +761,32 @@ if __name__ == "__main__":
                 print(t, N_t, file=outf2)
         logger.debug("\"times_vs_N.txt\" has been saved.")
 
-
         h_times = ROOT.TGraph("times_vs_N.txt")
-        h_times.SetTitle(f"Times [n_threads set = {nthreads}];t [s];Events")
+        h_times.SetTitle(f"Times [n_threads set = {N_THREADS}];t [s];Events")
         c_times = ROOT.TCanvas("Times", "Times")
         h_times.Draw("AP")
         c_times.SaveAs("times_vs_N.png")
         logger.debug(" Plot times vs. N has been saved.")
     elif args.analysis is False:
         if not os.path.isfile('Analyzed_files.txt'):
-            raise FileNotFoundError(f"The file \"Analyzed_files.txt\" doesn't "
+            raise FileNotFoundError("The file \"Analyzed_files.txt\" doesn't "
             "exist. Maybe you have to run the analysis first.")
         logger.info("No analysis on data has been done. Files from "
-            "\"Analyzed_files.txt\" are considered in the following.")
+            "\"Analyzed_files.txt\" are considered in the following...")
 
-    # Create RDataFrames to make the plot
+    # Create RDataFrames
     t_ana=ROOT.TTree()
     try:
-        t_ana.ReadFile("Analyzed_files.txt")
-    except IOError as err1:
+        nline=t_ana.ReadFile("Analyzed_files.txt")
+    except OSError as err1:
         logger.error(f"{err1} \nSomething went wrong with the file "
             "\"Analyzed_files.txt\". Try to run again the analysis.")
 
-    t_ana.Scan()
+    if nline==0:
+        logger.error("\"Analyzed_files.txt\" is empty! No files to analyze.")
+        sys.exit()
+
+    #t_ana.Scan()
     rfile_temp=[]
     d_types_temp = []
 
@@ -795,43 +795,37 @@ if __name__ == "__main__":
         d_types_temp.append(t_ana.type)
     d_types = np.asarray(d_types_temp)
 
-    data = {}
+    tdata = {}
     uniques = np.unique(d_types)
-    print(uniques)
     for u in uniques:
         root_files = ROOT.std.vector("string")()
         for f, t in zip(rfile_temp,d_types):
             if t==u:
-                print(t)
                 root_files.emplace_back(f)
-        print(root_files)
         os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Snapshots')))
         all_data = ROOT.RDataFrame("dimuon_w", root_files).Cache()
         N_tot = all_data.Count().GetValue()
         logger.info(f" Total number of events that passed the cuts is {N_tot}.")
         os.chdir(os.path.dirname(os. getcwd()))
-        data[f"{u}"]= all_data
-        print("a")
+        tdata[f"{u}"]= all_data
 
     # Move the snapshots in a dedicated directory
     if args.analysis is True:
         for f in rfile_temp:
             os.replace(f'{os.getcwd()}/{f}', f'Snapshots/{f}')
 
-    print(data)
-    # Plot the distributions of mass and cos(theta*) in six different range of
-    # rapidity. "pt_lim" is a tuple to set the limits on transverse momentum.
-    for dt, da in zip(data.keys(), data.values()):
+    # Distributions of mass and cos(theta*) in six different range of rapidity.
+    # "pt_lim" is a tuple to set the limits of transverse momentum.
+    for dt, da in zip(tdata.keys(), tdata.values()):
         pt_lim = (0,round(da.Max("Dimuon_pt").GetValue(),2))
-        mass_eta(da,dt,pt_lim)
-        cos_eta(da,dt,pt_lim)
+        # mass_eta(da,dt,pt_lim)
+        # cos_eta(da,dt,pt_lim)
 
         # Compute AFB (Forward_Backward Asymmetry) and plot results
         logger.info(" Computing Forward-Backward asymmetry...")
-        afb(da,dt,pt_lim)
+        # afb(da,dt,pt_lim)
 
-    # Comparison
-    ######################## CHECK ON -C SE è TUTTO GIUSTO
+    # Comparison plot
     os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Plot')))
     if args.comparison:
         try:
@@ -841,7 +835,7 @@ if __name__ == "__main__":
         except IndexError as err2:
             logger.error(f"{err2}:\nThese functions are able to compare results"
                 " for two set of data, for example Monte Carlo and collected data."
-                "It seems that you have analyzed only one.")
+                "It seems that you have analyzed only one or none.")
             sys.exit()
 
     os.chdir(os.path.dirname(os. getcwd()))

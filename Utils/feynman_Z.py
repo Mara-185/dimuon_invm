@@ -3,7 +3,8 @@
 
 import ROOT
 
-# pylint: disable=E1101 (9.63)
+# pylint: disable=E1101
+# (9.63/10)
 
 if __name__ == "__main__":
 

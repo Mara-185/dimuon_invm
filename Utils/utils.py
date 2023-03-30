@@ -2,9 +2,9 @@
 
 import logging
 import ROOT
-import numpy as np
 
-# pylint: disable=E1101 (10)
+# pylint: disable=E1101
+# (10/10)
 
 def set_logger(name, log_level):
     """
