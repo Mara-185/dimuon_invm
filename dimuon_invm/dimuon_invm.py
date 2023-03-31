@@ -8,8 +8,8 @@ The script takes as arguments:
     - (-p) the string of the particle's name to analyze and fit, among those
         in the dimuon spectrum, which are :
         "eta", "rho","omega", "phi", "J-psi", "psi'", "Y", "Z".
-        Better put the string in quotes, because for example for the "psi'" the
-        " ' " character gives some troubles. Default value is \"all\", so it
+        Better put the string in quotes, because for the "psi'" the " ' "
+        character gives some troubles. Default value is \"all\", so it
         returns fit and properties of all resonances.
 
 Furthermore, there are other optional arguments in order to skip the analysis:
@@ -45,7 +45,7 @@ sys.path.insert(0, os.path.abspath('../Utils'))
 import utils
 
 # pylint: disable=E1101
-# (9.16/10)
+# (9.17/10)
 
 
 def leptons_analysis(url, outfile):
@@ -179,11 +179,11 @@ def mumu_eta(infile, mu_cached=None):
     if mu_cached is None:
         t_name = infile.replace(".root", "")
         rdf = ROOT.RDataFrame(t_name,infile)
-        h_eta = rdf.Filter("Dimuon_pt<120").Histo1D(ROOT.RDF.TH1DModel("Dimuon eta", "Dimuon eta",
-            160, -7, 7), "Dimuon_eta")
+        h_eta = rdf.Filter("Dimuon_pt<120").Histo1D(ROOT.RDF.TH1DModel(
+            "Dimuon eta", "Dimuon eta", 160, -7, 7), "Dimuon_eta")
     else:
-        h_eta = mu_cached.Filter("Dimuon_pt<120").Histo1D(ROOT.RDF.TH1DModel("Dimuon eta", "Dimuon eta",
-            160, -7, 7), "Dimuon_eta")
+        h_eta = mu_cached.Filter("Dimuon_pt<120").Histo1D(ROOT.RDF.TH1DModel(
+            "Dimuon eta", "Dimuon eta", 160, -7, 7), "Dimuon_eta")
 
     # Styling
     ROOT.gStyle.SetOptStat("e")
@@ -671,9 +671,8 @@ if __name__ == "__main__":
 
     for part in args.particle:
         try:
-            print("a")
             resonance_fit(outfile_m, part)
-            #resonance_prop(outfile_m, dimu_cached, part)
+            resonance_prop(outfile_m, dimu_cached, part)
         except SyntaxError:
             logger.error(f"Invalid argument: \"{part}\"!\nPossible arguments are:"
                 "\"eta\", \"rho\",\"omega\",\"phi\", \"J-psi\", \"psi'\", \"Y\","

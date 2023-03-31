@@ -7,7 +7,7 @@ import sys
 import ROOT
 
 # pylint: disable=E1101
-# (8.07/10)
+# (8.62/10)
 
 # Add my modules to the path
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -73,7 +73,7 @@ class ZAsymmetryTest(unittest.TestCase):
     weights = ROOT.weights(dilepton[0], dilepton[3], cos_rap[0])
 
     # Actual tests
-    
+
     def test_dilepton_vec(self):
         """Test on \"dilepton_vec\" function."""
 

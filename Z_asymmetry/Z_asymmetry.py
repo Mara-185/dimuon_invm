@@ -20,7 +20,8 @@ The script takes as arguments:
         has to be added for each data file insert by \"-f\".
     - (-c) this argument can be passed to make the comparison plots of mass and
         cos(theta*) distributions and also a plot comparison of the Afb values.
-        It's necessary to have analyzed Monte Carlo and collected data previously.
+        It's necessary to have analyzed two different types of dataset (Monte
+        Carlo and collected data, for example).
 
 (E.g.: python3 Z_asymmetry.py -f MC_index.txt Run2012B_SingleMu_merged_index.txt
 \\ Run2012C_SingleMu_merged_index.txt -t MC data data -c)
@@ -59,7 +60,7 @@ sys.path.insert(0, os.path.abspath('../Utils'))
 import utils
 
 # pylint: disable=E1101
-# (9.39)
+# (9.39/10)
 
 # Array with mass and eta bin values
 MASS_BIN = np.array([60, 70, 78, 84, 87, 89, 91, 93, 95, 98, 104, 112, 120],
@@ -70,7 +71,7 @@ RAPIDITY_BIN=np.array([0, .4, .8, 1.2, 1.6, 2.0, 2.4], dtype=float)
 
 def retrieve_dataset(findex, type_d):
     """
-    The function takes as arguments the file index with the names of all root
+    The function takes as arguments the file index with the url of all root
     files in the dataset to analyze and its type (e.g. "MC" or "data").
     (The file index has to be downloaded or created manually.)
     Three lists and a standard vector are returned in order to save the time
