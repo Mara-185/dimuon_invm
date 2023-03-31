@@ -342,8 +342,8 @@ def afb(rdf_all, data_type, pt_lim=(0,120)):
     using the \"angular event weighting\" in the six different ranges of
     rapidity for each bin mass.
     It creates six different plots (one for each rapidity range)
-    (named \"Afb[y(rap_inf,rap_sup),pt(pt_inf,pt_sup)]_*dype.png\") and a plot
-    with all of them (named \"afb_y_*dtype.png\").
+    (named \"Afb[y(rap_inf,rap_sup),pt(pt_inf,pt_sup)]_*dype.png\") and a summary
+    plot with all of them (named \"afb_y_*dtype.png\").
 
     :param rdf_all: RDataframe to compute Afb
     :type rdf_all: RDataFrame, required

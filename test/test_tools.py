@@ -112,6 +112,10 @@ if __name__ == "__main__":
     logger.info("Starting the tests...")
     #Import shared library to test
     ROOT.gSystem.Load('../Utils/tools_cpp.so')
+    os.chdir("../Utils")
+    #ROOT.R__LOAD_LIBRARY(tools_cpp.so)
+    ROOT.gInterpreter.ProcessLine('#include "tools.h"')
+    os.chdir(ROOT_DIR)
 
     # Start all tests
     unittest.main()
