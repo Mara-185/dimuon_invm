@@ -1,16 +1,13 @@
 """Tests on \tools.cpp\" module (C++ shared library)."""
 
-
-
 import logging
 import unittest
 import os
 import sys
 import ROOT
-import ctypes
 
 # pylint: disable=E1101
-# (8/10)
+# (8.07/10)
 
 # Add my modules to the path
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -19,15 +16,10 @@ sys.path.insert(0, os.path.abspath('../Utils'))
 import utils
 
 #Import shared library to test (Necessary for TRAVIS CI)
-#ROOT.gInterpreter.AddIncludePath('../Utils/tools.h')
-#ROOT.gSystem.Load('../Utils/tools_cpp.so')
 os.chdir("../Utils")
 ROOT.gInterpreter.ProcessLine('#include "tools.h"')
 ROOT.gInterpreter.ProcessLine('.L tools.cpp+')
 os.chdir(ROOT_DIR)
-# ROOT.gSystem.Load('../Utils/tools_cpp.so')
-#echo $LD_LIBRARY_PATH
-# testlib = ctypes.cdll.LoadLibrary("./tools_cpp.so")
 
 
 # Create logger
@@ -39,7 +31,8 @@ def create_example():
 
     # Create a standard vector with transvers momentum values
     pt = ROOT.std.vector("float")()
-    pt.emplace_back(57.2187)
+    #pt.emplace_back(57.2187)
+    pt.emplace_back(2)
     pt.emplace_back(31.1705)
 
     # Create a standard vector with pseudorapidity values
