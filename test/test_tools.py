@@ -22,8 +22,9 @@ import utils
 ROOT.gInterpreter.AddIncludePath('../Utils/tools.h')
 ROOT.gSystem.Load('../Utils/tools_cpp.so')
 os.chdir("../Utils")
-#ROOT.R__LOAD_LIBRARY(tools_cpp.so)
 ROOT.gInterpreter.ProcessLine('#include "tools.h"')
+ROOT.gInterpreter.ProcessLine('.L tools.cpp+')
+
 os.chdir(ROOT_DIR)
 # ROOT.gSystem.Load('../Utils/tools_cpp.so')
 #echo $LD_LIBRARY_PATH
@@ -110,6 +111,7 @@ if __name__ == "__main__":
     # Create logger
     #logger = utils.set_logger("Unit test", logging.DEBUG)
     logger.info("Starting the tests...")
+
     #Import shared library to test
     ROOT.gInterpreter.AddIncludePath('../Utils/tools.h')
     ROOT.gSystem.Load('../Utils/tools_cpp.so')

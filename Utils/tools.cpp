@@ -4,8 +4,8 @@
 
 
   // The function takes in input transverse momentum, rapidity, azimuthal angle
-  // and mass of each muon of the filtered events and it returns a "VecOps"
-  // with the same physical quantities but computed for the dileptons system.
+  // and mass of each muon and it returns a "VecOps" with the same physical
+  // quantities but computed for the dileptons system.
 
 ROOT::VecOps::RVec<float> dilepton_vec(const float pt0, const float eta0,
         const float phi0, const float mass0, const float pt1,
@@ -23,9 +23,9 @@ ROOT::VecOps::RVec<float> dilepton_vec(const float pt0, const float eta0,
 
 
     // The function takes in input transverse momentum, rapidity, azimuthal angle
-    // and mass of each muon and the charge of one of them of the filtered events
-    // and it returns a "VecOps" with the value of the cos(theta*) in the
-    // Collins-Soper frame and the rapidity of the dileptons.
+    // and mass of each muon and the charge of one of them and it returns a
+    // "VecOps" with the value of the cos(theta*) in the Collins-Soper frame
+    // and the rapidity of the dileptons.
 
 ROOT::VecOps::RVec<float> cos_rapidity(const float pt0, const float eta0,
         const float phi0, const float mass0, const int charge0, const float pt1,

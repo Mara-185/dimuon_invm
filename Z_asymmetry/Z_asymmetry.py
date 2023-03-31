@@ -196,7 +196,7 @@ def z_main(url, iteration, run):
 def cos_eta(rdf_all_c, data_type, pt_lim=(0,120), infile=None):
     """
     Plot the cos(theta*) of Z resonance (mass range from 60 GeV to 120 GeV), in
-    # the six different range of rapidity. It also make a cut on pt.
+    the six different ranges of rapidity. It also make a cut on pt.
     Plot is saved as "Dimuon_cos[y(rap_inf,rap_sup),pt(pt_inf,pt_sup)]_*dtype*.png"
     in a directory named "Plot".
     It also creates a root file containg all histograms, named \"hcos_*dtype*.root\",
@@ -268,7 +268,7 @@ def cos_eta(rdf_all_c, data_type, pt_lim=(0,120), infile=None):
 def mass_eta(rdf_all_m, data_type, pt_lim = (0,120), infile=None):
     """
     Plot the Z resonance (mass range from 60 GeV to 120 GeV), in the six
-    different range of rapidity. It also make a cut on pt.
+    different ranges of rapidity. It also make a cut on pt.
     Plot is saved as "Dimuon_mass[y(rap_inf,rap_sup),pt(pt_inf,pt_sup)]_*dtype.png"
     in a directory named "Plot".
     It also creates a root file containg all histograms, named \"hmass_*dtype.root\",
