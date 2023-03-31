@@ -110,8 +110,8 @@ if __name__ == "__main__":
     # Create logger
     #logger = utils.set_logger("Unit test", logging.DEBUG)
     logger.info("Starting the tests...")
-    # #Import shared library to test
-    # ROOT.gSystem.Load('../Utils/tools_cpp.so')
+    #Import shared library to test
+    ROOT.gSystem.Load('../Utils/tools_cpp.so')
 
     # Start all tests
     unittest.main()
