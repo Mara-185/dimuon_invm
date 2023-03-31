@@ -179,11 +179,11 @@ def mumu_eta(infile, mu_cached=None):
     if mu_cached is None:
         t_name = infile.replace(".root", "")
         rdf = ROOT.RDataFrame(t_name,infile)
-        h_eta = rdf.Histo1D(ROOT.RDF.TH1DModel("Dimuon eta", "Dimuon eta",
-            160, -4, 4), "Dimuon_eta")
+        h_eta = rdf.Filter("Dimuon_pt<120").Histo1D(ROOT.RDF.TH1DModel("Dimuon eta", "Dimuon eta",
+            160, -7, 7), "Dimuon_eta")
     else:
-        h_eta = mu_cached.Histo1D(ROOT.RDF.TH1DModel("Dimuon eta", "Dimuon eta",
-            160, -4, 4), "Dimuon_eta")
+        h_eta = mu_cached.Filter("Dimuon_pt<120").Histo1D(ROOT.RDF.TH1DModel("Dimuon eta", "Dimuon eta",
+            160, -7, 7), "Dimuon_eta")
 
     # Styling
     ROOT.gStyle.SetOptStat("e")
@@ -233,7 +233,7 @@ def resonance_fit(infile, particle="all"):
     tree = f.Get(f"{tree_name}")
     logger.debug("The tree is created.")
 
-    low_edge_pt = 0
+    low_edge_pt = 20
     upper_edge_pt = 120
     eta_edge = 1.2
 
@@ -671,8 +671,9 @@ if __name__ == "__main__":
 
     for part in args.particle:
         try:
-            #resonance_fit(outfile_m, part)
-            resonance_prop(outfile_m, dimu_cached, part)
+            print("a")
+            resonance_fit(outfile_m, part)
+            #resonance_prop(outfile_m, dimu_cached, part)
         except SyntaxError:
             logger.error(f"Invalid argument: \"{part}\"!\nPossible arguments are:"
                 "\"eta\", \"rho\",\"omega\",\"phi\", \"J-psi\", \"psi'\", \"Y\","

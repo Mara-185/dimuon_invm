@@ -1,21 +1,21 @@
 
-  RooFitResult: minimized FCN value: -3.61982e+06, estimated distance to minimum: 0.000130869
+  RooFitResult: minimized FCN value: -2.66233e+06, estimated distance to minimum: 8.29479e-05
                 covariance matrix quality: Full, accurate covariance matrix
                 Status : MINIMIZE=0 HESSE=0 
 
     Floating Parameter  InitialValue    FinalValue +/-  Error     GblCorr.
   --------------------  ------------  --------------------------  --------
-                    a0   -1.7000e-01   -6.0320e-02 +/-  4.27e-03  <none>
-                    a1    4.0000e-01   -9.5424e-02 +/-  5.65e-03  <none>
-                    a2    0.0000e+00    1.1367e-02 +/-  5.30e-03  <none>
-                 mean1    9.4000e+00    9.4484e+00 +/-  4.58e-04  <none>
-                 mean2    1.0000e+01    1.0015e+01 +/-  9.12e-04  <none>
-                 mean3    1.0300e+01    1.0341e+01 +/-  1.19e-03  <none>
-                  nbkg    1.6553e+05    2.1508e+05 +/-  8.80e+02  <none>
-                 nsig1    5.5176e+04    6.5388e+04 +/-  4.04e+02  <none>
-                 nsig2    4.7294e+04    2.9686e+04 +/-  3.88e+02  <none>
-                 nsig3    4.7294e+04    2.0907e+04 +/-  3.70e+02  <none>
-                sigma1    5.0000e-03    7.9293e-02 +/-  4.88e-04  <none>
-                sigma2    5.0000e-03    8.2000e-02 +/-  1.01e-03  <none>
-                sigma3    5.0000e-03    8.1385e-02 +/-  1.32e-03  <none>
+                    a0   -1.7000e-01   -1.3977e-01 +/-  5.23e-03  <none>
+                    a1    4.0000e-01   -1.4467e-01 +/-  7.00e-03  <none>
+                    a2    0.0000e+00    1.1493e-02 +/-  6.55e-03  <none>
+                 mean1    9.4000e+00    9.4483e+00 +/-  4.55e-04  <none>
+                 mean2    1.0000e+01    1.0015e+01 +/-  8.75e-04  <none>
+                 mean3    1.0300e+01    1.0341e+01 +/-  1.13e-03  <none>
+                  nbkg    1.2426e+05    1.4172e+05 +/-  7.25e+02  <none>
+                 nsig1    4.1420e+04    5.9826e+04 +/-  3.60e+02  <none>
+                 nsig2    3.5503e+04    2.7415e+04 +/-  3.30e+02  <none>
+                 nsig3    3.5503e+04    1.9561e+04 +/-  3.15e+02  <none>
+                sigma1    5.0000e-03    7.9661e-02 +/-  4.79e-04  <none>
+                sigma2    5.0000e-03    8.1963e-02 +/-  9.44e-04  <none>
+                sigma3    5.0000e-03    8.2546e-02 +/-  1.24e-03  <none>
 

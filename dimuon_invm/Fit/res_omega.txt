@@ -1,14 +1,14 @@
 
-  RooFitResult: minimized FCN value: -2.05403e+06, estimated distance to minimum: 0.000135924
+  RooFitResult: minimized FCN value: -1.79999e+06, estimated distance to minimum: 4.24603e-05
                 covariance matrix quality: Full, accurate covariance matrix
                 Status : MINIMIZE=0 HESSE=0 
 
     Floating Parameter  InitialValue    FinalValue +/-  Error     GblCorr.
   --------------------  ------------  --------------------------  --------
-                    a0   -1.7000e-01   -2.6785e-02 +/-  5.05e-03  <none>
-                    a1    4.0000e-01   -6.8890e-02 +/-  9.15e-03  <none>
-                  mean    7.8000e-01    7.8135e-01 +/-  1.47e-04  <none>
-                  nbkg    7.8292e+04    1.2859e+05 +/-  7.96e+02  <none>
-                  nsig    3.1317e+04    2.7996e+04 +/-  7.30e+02  <none>
-                 sigma    1.0000e-02    1.1144e-02 +/-  2.15e-04  <none>
+                    a0   -1.7000e-01   -2.7917e-02 +/-  5.40e-03  <none>
+                    a1    4.0000e-01   -6.6100e-02 +/-  9.65e-03  <none>
+                  mean    7.8000e-01    7.8134e-01 +/-  1.53e-04  <none>
+                  nbkg    6.9248e+04    1.1273e+05 +/-  7.35e+02  <none>
+                  nsig    2.7699e+04    2.5761e+04 +/-  6.76e+02  <none>
+                 sigma    1.0000e-02    1.1281e-02 +/-  2.17e-04  <none>
 

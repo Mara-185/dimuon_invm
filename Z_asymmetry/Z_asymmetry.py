@@ -70,8 +70,8 @@ RAPIDITY_BIN=np.array([0, .4, .8, 1.2, 1.6, 2.0, 2.4], dtype=float)
 
 def retrieve_dataset(findex, type_d):
     """
-    The function takes as argument the file index with all name of root files
-    of the chosen dataset to analyze and its type (e.g. "MC" or "data").
+    The function takes as arguments the file index with the names of all root
+    files in the dataset to analyze and its type (e.g. "MC" or "data").
     (The file index has to be downloaded or created manually.)
     Three lists and a standard vector are returned in order to save the time
     needed to analyze each file, its number of events, the name of the
@@ -81,13 +81,13 @@ def retrieve_dataset(findex, type_d):
     :type findex: string of txt file, required
     :param type_d: type of file (e.g. "MC" or "data")
     :type type_d: string, required
-    :return files: list of the analyzed files
+    :return files: analyzed files
     :rtype files: standard vector of string
-    :return timef: list of time elpased analyzing each file
+    :return timef: time elpased analyzing each file
     :rtype timef: list
-    :return Nf: list of events analyzed for each file
+    :return Nf: events analyzed for each file
     :rtype Nf: list
-    :return typef: list of data types
+    :return typef: data types
     :rtype typef: list
 
     """
@@ -121,10 +121,10 @@ def retrieve_dataset(findex, type_d):
 
 def z_main(url, iteration, run):
     """
-    The function create an RDataFrame to make the selection of the good events
-    for the analysis, to compute some useful quantities and store them in new
-    columns. It returns the string of the root file created by a snapshot only
-    with the columns needed.
+    The function creates an RDataFrame to select good events for the analysis,
+    to compute some useful quantities and store them in new columns.
+    It returns the string of the root file created by a snapshot, containing
+    only the columns needed.
 
     :param url: url of the root file to upload from the web.
     :type url: url of root file, required.
