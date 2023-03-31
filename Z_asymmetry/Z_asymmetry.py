@@ -14,7 +14,7 @@ twelve mass bins:
 
 The script takes as arguments:
 
-    - (-f) the txt files (they must finished with \"*_index.txt\") with the url
+    - (-f) the txt files (they must finish with \"*_index.txt\") with the url
         of the root data files to analyze. They have to be NanoAOD type.
     - (-t) the type of dataset to analyze. [E.g. "MC" or "data"]. This string
         has to be added for each data file insert by \"-f\".
