@@ -556,7 +556,7 @@ def comparison_mass(mc_file, data_file):
     function, for Monte Carlo and data. So previously, it's necessary to run the
     analysis for both. It rescales the entries of Monte Carlo with the data ones
     and plot both in the same canvas.
-    Plots are named \"MC_data_cos(rap_inf,rap_sup).png\"
+    Plots are named \"MC_data_mass(rap_inf,rap_sup).png\"
 
     :param mc_file: file containing histograms from MC
     :type mc_file: root file, required
@@ -617,7 +617,7 @@ def comparison_afb(mc_file, data_file):
     for Monte Carlo and data. So previously, it's necessary to  run the analysis
     for both. It rescales the entries of Monte Carlo with the data ones
     and plot both in the same canvas.
-    Plots are named \"MC_data_cos(rap_inf,rap_sup).png\"
+    Plots are named \"MC_data_afb(rap_inf,rap_sup).png\"
 
     :param mc_file: file containing histograms from MC
     :type mc_file: root file, required

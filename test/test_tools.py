@@ -18,13 +18,15 @@ import utils
 
 #Import shared library to test
 ROOT.gInterpreter.AddIncludePath('../Utils/tools.h')
-#ROOT.gInterpreter.ProcessLine('#include "tools.h"')
-ROOT.gSystem.Load('../Utils/tools_cpp.so')
-print(os.getcwd())
 os.chdir("../Utils")
-print(os.getcwd())
-#echo $LD_LIBRARY_PATH 
-testlib = ctypes.cdll.LoadLibrary("./tools_cpp.so")
+ROOT.gInterpreter.ProcessLine('#include "tools.h"')
+os.chdir(ROOT_DIR)
+ROOT.gSystem.Load('../Utils/tools_cpp.so')
+# print(os.getcwd())
+# os.chdir("../Utils")
+# print(os.getcwd())
+#echo $LD_LIBRARY_PATH
+# testlib = ctypes.cdll.LoadLibrary("./tools_cpp.so")
 
 from ROOT import dilepton_vec
 
