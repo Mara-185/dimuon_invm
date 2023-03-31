@@ -5,6 +5,7 @@ import unittest
 import os
 import sys
 import ROOT
+import ctypes
 
 # pylint: disable=E1101
 # (8/10)
@@ -17,8 +18,11 @@ import utils
 
 #Import shared library to test
 ROOT.gInterpreter.AddIncludePath('../Utils/tools.h')
-ROOT.gInterpreter.ProcessLine('#include "tools.h"')
+#ROOT.gInterpreter.ProcessLine('#include "tools.h"')
 ROOT.gSystem.Load('../Utils/tools_cpp.so')
+testlib = ctypes.cdll.LoadLibrary("../Utils/tools_cpp.so")
+
+from ROOT import dilepton_vec
 
 # Create logger
 logger = utils.set_logger("Unit test", logging.DEBUG)
