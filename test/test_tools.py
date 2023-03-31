@@ -21,7 +21,9 @@ ROOT.gInterpreter.AddIncludePath('../Utils/tools.h')
 #ROOT.gInterpreter.ProcessLine('#include "tools.h"')
 ROOT.gSystem.Load('../Utils/tools_cpp.so')
 print(os.getcwd())
-testlib = ctypes.cdll.LoadLibrary("Utils/tools_cpp.so")
+os.chdir("../Utils")
+print(os.getcwd())
+testlib = ctypes.cdll.LoadLibrary("./tools_cpp.so")
 
 from ROOT import dilepton_vec
 
