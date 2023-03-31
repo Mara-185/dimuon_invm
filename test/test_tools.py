@@ -23,6 +23,7 @@ ROOT.gSystem.Load('../Utils/tools_cpp.so')
 print(os.getcwd())
 os.chdir("../Utils")
 print(os.getcwd())
+#echo $LD_LIBRARY_PATH 
 testlib = ctypes.cdll.LoadLibrary("./tools_cpp.so")
 
 from ROOT import dilepton_vec
