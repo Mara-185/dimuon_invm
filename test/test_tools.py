@@ -19,12 +19,11 @@ sys.path.insert(0, os.path.abspath('../Utils'))
 import utils
 
 #Import shared library to test (Necessary for TRAVIS CI)
-ROOT.gInterpreter.AddIncludePath('../Utils/tools.h')
-ROOT.gSystem.Load('../Utils/tools_cpp.so')
+#ROOT.gInterpreter.AddIncludePath('../Utils/tools.h')
+#ROOT.gSystem.Load('../Utils/tools_cpp.so')
 os.chdir("../Utils")
 ROOT.gInterpreter.ProcessLine('#include "tools.h"')
 ROOT.gInterpreter.ProcessLine('.L tools.cpp+')
-
 os.chdir(ROOT_DIR)
 # ROOT.gSystem.Load('../Utils/tools_cpp.so')
 #echo $LD_LIBRARY_PATH
@@ -109,15 +108,7 @@ class ZAsymmetryTest(unittest.TestCase):
 if __name__ == "__main__":
 
     # Create logger
-    #logger = utils.set_logger("Unit test", logging.DEBUG)
     logger.info("Starting the tests...")
-
-    #Import shared library to test
-    ROOT.gInterpreter.AddIncludePath('../Utils/tools.h')
-    ROOT.gSystem.Load('../Utils/tools_cpp.so')
-    os.chdir("../Utils")
-    ROOT.gInterpreter.ProcessLine('#include "tools.h"')
-    os.chdir(ROOT_DIR)
 
     # Start all tests
     unittest.main()
