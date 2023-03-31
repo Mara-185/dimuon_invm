@@ -19,12 +19,12 @@ sys.path.insert(0, os.path.abspath('../Utils'))
 import utils
 
 #Import shared library to test (Necessary for TRAVIS CI)
-ROOT.gInterpreter.AddIncludePath('../Utils/tools.h')
-ROOT.gSystem.Load('../Utils/tools_cpp.so')
-os.chdir("../Utils")
-#ROOT.R__LOAD_LIBRARY(tools_cpp.so)
-ROOT.gInterpreter.ProcessLine('#include "tools.h"')
-os.chdir(ROOT_DIR)
+# ROOT.gInterpreter.AddIncludePath('../Utils/tools.h')
+# ROOT.gSystem.Load('../Utils/tools_cpp.so')
+# os.chdir("../Utils")
+# #ROOT.R__LOAD_LIBRARY(tools_cpp.so)
+# ROOT.gInterpreter.ProcessLine('#include "tools.h"')
+# os.chdir(ROOT_DIR)
 # ROOT.gSystem.Load('../Utils/tools_cpp.so')
 #echo $LD_LIBRARY_PATH
 # testlib = ctypes.cdll.LoadLibrary("./tools_cpp.so")
@@ -111,9 +111,9 @@ if __name__ == "__main__":
     #logger = utils.set_logger("Unit test", logging.DEBUG)
     logger.info("Starting the tests...")
     #Import shared library to test
+    ROOT.gInterpreter.AddIncludePath('../Utils/tools.h')
     ROOT.gSystem.Load('../Utils/tools_cpp.so')
     os.chdir("../Utils")
-    #ROOT.R__LOAD_LIBRARY(tools_cpp.so)
     ROOT.gInterpreter.ProcessLine('#include "tools.h"')
     os.chdir(ROOT_DIR)
 
