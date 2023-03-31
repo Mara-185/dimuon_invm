@@ -67,7 +67,6 @@ MASS_BIN = np.array([60, 70, 78, 84, 87, 89, 91, 93, 95, 98, 104, 112, 120],
     dtype=float)
 RAPIDITY_BIN=np.array([0, .4, .8, 1.2, 1.6, 2.0, 2.4], dtype=float)
 
-# Functions
 
 def retrieve_dataset(findex, type_d):
     """
@@ -819,12 +818,12 @@ if __name__ == "__main__":
     # "pt_lim" is a tuple to set the limits of transverse momentum.
     for dt, da in zip(tdata.keys(), tdata.values()):
         pt_lim = (0,round(da.Max("Dimuon_pt").GetValue(),2))
-        # mass_eta(da,dt,pt_lim)
-        # cos_eta(da,dt,pt_lim)
+        mass_eta(da,dt,pt_lim)
+        cos_eta(da,dt,pt_lim)
 
         # Compute AFB (Forward_Backward Asymmetry) and plot results
         logger.info(" Computing Forward-Backward asymmetry...")
-        # afb(da,dt,pt_lim)
+        afb(da,dt,pt_lim)
 
     # Comparison plot
     os.chdir(os.path.abspath(os.path.join(os.sep,f'{os.getcwd()}', 'Plot')))
