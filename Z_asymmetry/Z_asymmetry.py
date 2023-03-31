@@ -488,10 +488,10 @@ def afb(rdf_all, data_type, pt_lim=(0,120)):
 
 def comparison_cos(mc_file, data_file):
     """
-    The function takes the histograms of Cos(theta*) obtained by \"cos_eta()\"
-    function, for Monte Carlo and data. So previously, it's necessary to run the
-    analysis for both. It rescales the entries of Monte Carlo with the data ones
-    and plot both in the same canvas.
+    The function takes in input the distributions of cos(theta*) for Monte Carlo
+    and data, obtained by the function \"cos_eta()\". So previously, it's
+    necessary to run the analysis for both. It rescales the entries of Monte
+    Carlo with the data ones and plot them in the same canvas.
     Plots are named \"MC_data_cos(rap_inf,rap_sup).png\".
 
     :param mc_file: file containing histograms from MC
@@ -552,10 +552,10 @@ def comparison_cos(mc_file, data_file):
 
 def comparison_mass(mc_file, data_file):
     """
-    The function takes the histograms of Mass obtained by \"mass_eta()\"
-    function, for Monte Carlo and data. So previously, it's necessary to run the
-    analysis for both. It rescales the entries of Monte Carlo with the data ones
-    and plot both in the same canvas.
+    The function takes in input the distributions of mass for Monte Carlo and
+    data, obtained by the function \"mass_eta()\". So previously, it's necessary
+    to run the analysis for both. It rescales the entries of Monte Carlo with the
+    data ones and plot them in the same canvas.
     Plots are named \"MC_data_mass(rap_inf,rap_sup).png\"
 
     :param mc_file: file containing histograms from MC
@@ -613,10 +613,10 @@ def comparison_mass(mc_file, data_file):
 
 def comparison_afb(mc_file, data_file):
     """
-    The function takes the histograms of Afb obtained by \"afb()\" function,
-    for Monte Carlo and data. So previously, it's necessary to  run the analysis
-    for both. It rescales the entries of Monte Carlo with the data ones
-    and plot both in the same canvas.
+    The function takes in input the plot of Afb for Monte Carlo and data,
+    obtained by the function \"afb()\". So previously, it's necessary to run the
+    analysis for both. It rescales the entries of Monte Carlo with the data ones
+    and plot them in the same canvas.
     Plots are named \"MC_data_afb(rap_inf,rap_sup).png\"
 
     :param mc_file: file containing histograms from MC

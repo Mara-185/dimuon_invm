@@ -1,5 +1,7 @@
 """Tests on \tools.cpp\" module (C++ shared library)."""
 
+
+
 import logging
 import unittest
 import os
@@ -16,19 +18,17 @@ os.chdir(ROOT_DIR)
 sys.path.insert(0, os.path.abspath('../Utils'))
 import utils
 
-#Import shared library to test
+#Import shared library to test (Necessary for TRAVIS CI)
 ROOT.gInterpreter.AddIncludePath('../Utils/tools.h')
+ROOT.gSystem.Load('../Utils/tools_cpp.so')
 os.chdir("../Utils")
+#ROOT.R__LOAD_LIBRARY(tools_cpp.so)
 ROOT.gInterpreter.ProcessLine('#include "tools.h"')
 os.chdir(ROOT_DIR)
-ROOT.gSystem.Load('../Utils/tools_cpp.so')
-# print(os.getcwd())
-# os.chdir("../Utils")
-# print(os.getcwd())
+# ROOT.gSystem.Load('../Utils/tools_cpp.so')
 #echo $LD_LIBRARY_PATH
 # testlib = ctypes.cdll.LoadLibrary("./tools_cpp.so")
 
-from ROOT import dilepton_vec
 
 # Create logger
 logger = utils.set_logger("Unit test", logging.DEBUG)
@@ -72,7 +72,7 @@ class ZAsymmetryTest(unittest.TestCase):
 
         logger.info("Test on \"dilepton_vec\" function...")
         pt, eta, phi, mass, charge = create_example()
-        dilepton = dilepton_vec(pt[0], eta[0], phi[0], mass[0], pt[1], \
+        dilepton = ROOT.dilepton_vec(pt[0], eta[0], phi[0], mass[0], pt[1], \
             eta[1], phi[1], mass[1])
         self.assertAlmostEqual(dilepton[0], 34.4752, 4)
         self.assertAlmostEqual(dilepton[1], 2.87066, 4)
